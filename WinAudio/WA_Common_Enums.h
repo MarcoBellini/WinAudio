@@ -1,0 +1,41 @@
+#ifndef WA_Common_Enums_H
+#define WA_Common_Enums_H
+
+/// <summary>
+/// Defines WinAudio Errors code
+/// </summary>
+enum WINAUDIO_ERRORS
+{
+	WINAUDIO_OK = 0,
+	WINAUDIO_FILENOTFOUND,
+	WINAUDIO_FILENOTSUPPORTED,
+	WINAUDIO_FILENOTOPEN,
+	WINAUDIO_OUTPUTNOTREADY,
+	WINAUDIO_MALLOCFAIL,
+	WINAUDIO_PBTHREADCREATIONFAIL,
+	WINAUDIO_EVENTSCREATIONFAIL,
+	WINAUDIO_INVALIDOUTPUT,
+	WINAUDIO_BADPTR,
+	WINAUDIO_CANNOTPLAYFILE
+};
+
+/// <summary>
+/// Define Avaiable Outputs mode
+/// </summary>
+enum WINAUDIO_OUTPUT
+{
+	WINAUDIO_WASAPI = 0,
+	WINAUDIO_DIRECTSOUND
+};
+
+/// <summary>
+/// Define Playback Status
+/// </summary>
+enum WINAUDIO_PLAYBACK_STATUS
+{
+	WINAUDIO_PLAY = 0,
+	WINAUDIO_PAUSE,
+	WINAUDIO_STOP
+};
+
+#endif
