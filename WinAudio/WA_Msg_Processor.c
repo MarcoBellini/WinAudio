@@ -15,6 +15,9 @@ static int32_t WA_Msg_GetDecoder(PbThreadData* pEngine, const WINAUDIO_STRPTR pF
 
 int32_t WA_Msg_Open(PbThreadData* pEngine, const WINAUDIO_STRPTR pFilePath)
 {
+
+	if (pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
 	
 	// Find a Proper Decoder
 	pEngine->uActiveInput = WA_Msg_GetDecoder(pEngine, pFilePath);
@@ -27,30 +30,43 @@ int32_t WA_Msg_Open(PbThreadData* pEngine, const WINAUDIO_STRPTR pFilePath)
 	WINAUDIO_STRCPY(pEngine->pFilePath, MAX_PATH, pFilePath);
 
 	pEngine->bFileIsOpen = true;
+	pEngine->nCurrentStatus = WINAUDIO_STOP;
 
 	return WINAUDIO_OK;
 }
 
-void WA_Msg_Close(PbThreadData* pEngine)
+int32_t WA_Msg_Close(PbThreadData* pEngine)
 {
-	// TODO: Call Stop() first
+	if (!pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
+
+	// Call Stop() first
+	if (pEngine->nCurrentStatus != WINAUDIO_STOP)
+		WA_Msg_Stop(pEngine);
+
 	pEngine->uActiveInput = WA_INPUT_INVALID;
 	ZeroMemory(pEngine->pFilePath, MAX_PATH);
 	pEngine->bFileIsOpen = false;
 
+	return WINAUDIO_OK;
 }
 
 int32_t WA_Msg_Play(PbThreadData* pEngine)
 {
 	WA_Input* pIn;
 	WA_Output* pOut;
+	WA_CircleBuffer* pCircle;
 	uint32_t uMaxOutputLen;
 
 	if (!pEngine->bFileIsOpen)
 		return WINAUDIO_FILENOTOPEN;
 
+	if (pEngine->nCurrentStatus != WINAUDIO_STOP)
+		return WINAUDIO_CANNOTCHANGESTATUS;
+
 	pIn = &pEngine->InputArray[pEngine->uActiveInput];
 	pOut = &pEngine->OutputArray[pEngine->uActiveOutput];
+	pCircle = &pEngine->Circle;
 
 	if (!pIn->input_OpenFile(pIn, pEngine->pFilePath))
 		return WINAUDIO_CANNOTPLAYFILE;	
@@ -86,16 +102,19 @@ int32_t WA_Msg_Play(PbThreadData* pEngine)
 
 	pEngine->bIsStreamSeekable = pIn->input_IsStreamSeekable(pIn);
 
-	// TODO: Use uMaxOutputLen to create a circle buffer to store spectrum data
+	// Use uMaxOutputLen to create a circle buffer to store spectrum data
+	_ASSERT(uMaxOutputLen > 0);
+	pCircle->CircleBuffer_Create(pCircle, uMaxOutputLen);
 
 	// Write Data to Output before play
 	WA_Output_FeedWithData(pEngine);
 
-	pOut->output_DevicePlay(pOut);
-
 	pEngine->nCurrentStatus = WINAUDIO_PLAY;
 	pEngine->bEndOfStream = false;
 	pEngine->uOutputMaxLatency = uMaxOutputLen;
+
+	if (!pOut->output_DevicePlay(pOut))
+		return WINAUDIO_CANNOTCHANGESTATUS;
 
 	return WINAUDIO_OK;
 
@@ -105,14 +124,21 @@ int32_t WA_Msg_Stop(PbThreadData* pEngine)
 {
 	WA_Input* pIn;
 	WA_Output* pOut;
+	WA_CircleBuffer* pCircle;
 
 	if (!pEngine->bFileIsOpen)
 		return WINAUDIO_FILENOTOPEN;
 
+	if (pEngine->nCurrentStatus == WINAUDIO_STOP)
+		return WINAUDIO_CANNOTCHANGESTATUS;
+
 	pIn = &pEngine->InputArray[pEngine->uActiveInput];
 	pOut = &pEngine->OutputArray[pEngine->uActiveOutput];
+	pCircle = &pEngine->Circle;
 
-	pOut->output_DeviceStop(pOut);
+	if(!pOut->output_DeviceStop(pOut))
+		return WINAUDIO_CANNOTCHANGESTATUS;
+
 	pOut->output_CloseDevice(pOut);
 
 	switch (pEngine->uActiveOutput)
@@ -125,7 +151,8 @@ int32_t WA_Msg_Stop(PbThreadData* pEngine)
 		break;
 	}
 
-	// TODO: Close Circle Buffer
+	// Close Circle Buffer
+	pCircle->CircleBuffer_Destroy(pCircle);
 
 	pIn->input_Seek(pIn, 0, WA_SEEK_BEGIN);
 	pIn->input_CloseFile(pIn);
@@ -136,12 +163,82 @@ int32_t WA_Msg_Stop(PbThreadData* pEngine)
 	return WINAUDIO_OK;
 }
 
-int32_t WA_Msg_GetStatus(PbThreadData* pEngine)
+int32_t WA_Msg_Pause(PbThreadData* pEngine)
+{
+	WA_Output* pOut;
+
+	if (!pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
+
+	if (pEngine->nCurrentStatus != WINAUDIO_PLAY)
+		return WINAUDIO_CANNOTCHANGESTATUS;
+
+	pOut = &pEngine->OutputArray[pEngine->uActiveOutput];
+
+	if(!pOut->output_DevicePause(pOut, true))
+		return WINAUDIO_CANNOTCHANGESTATUS;
+
+	pEngine->nCurrentStatus = WINAUDIO_PAUSE;
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_UnPause(PbThreadData* pEngine)
+{
+	WA_Output* pOut;
+
+	if (!pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
+
+	if (pEngine->nCurrentStatus != WINAUDIO_PAUSE)
+		return WINAUDIO_CANNOTCHANGESTATUS;
+
+	pOut = &pEngine->OutputArray[pEngine->uActiveOutput];
+
+	if(!pOut->output_DevicePause(pOut, false))
+		return WINAUDIO_CANNOTCHANGESTATUS;
+
+	pEngine->nCurrentStatus = WINAUDIO_PLAY;
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Get_Status(PbThreadData* pEngine)
 {
 	if (!pEngine->bFileIsOpen)
 		return WINAUDIO_STOP;
 
 	return pEngine->nCurrentStatus;
+}
+
+int32_t WA_Msg_Get_Samplerate(PbThreadData* pEngine, uint32_t* pSamplerate)
+{
+	if (!pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
+
+	(*pSamplerate) = pEngine->uSamplerate;
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Get_Channels(PbThreadData* pEngine, uint16_t* pChannels)
+{
+	if (!pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
+
+	(*pChannels) = pEngine->uChannels;
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Get_BitsPerSample(PbThreadData* pEngine, uint16_t* pBps)
+{
+	if (!pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
+
+	(*pBps) = pEngine->uBitsPerSample;
+
+	return WINAUDIO_OK;
 }
 
 

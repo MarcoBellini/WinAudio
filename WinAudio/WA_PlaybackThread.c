@@ -23,6 +23,9 @@ DWORD WINAPI PlayBack_Thread_Proc(_In_ LPVOID lpParameter)
 	bool bContinueLoop = true;
 	PbThreadData PbEngineData;
 
+	
+	// Clear Instance Memory
+	ZeroMemory(&PbEngineData, sizeof(PbThreadData));
 
 	// Initialize COM in Single Thread Apartment
 	hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
@@ -104,14 +107,16 @@ static void WA_Process_Messages(PbThreadData* pEngine)
 			(*pErrorCode) = WA_Msg_Open(pEngine, (WINAUDIO_STRPTR) msg.wParam);
 			break;
 		case WA_MSG_CLOSEFILE:
-			WA_Msg_Close(pEngine);
+			(*pErrorCode) = WA_Msg_Close(pEngine);
 			break;
 		case WA_MSG_PLAY:
 			(*pErrorCode) =  WA_Msg_Play(pEngine);
 			break;
 		case WA_MSG_PAUSE:
+			(*pErrorCode) = WA_Msg_Pause(pEngine);
 			break;
 		case WA_MSG_UNPAUSE:
+			(*pErrorCode) = WA_Msg_UnPause(pEngine);
 			break;
 		case WA_MSG_STOP:
 			(*pErrorCode) = WA_Msg_Stop(pEngine);
@@ -131,15 +136,17 @@ static void WA_Process_Messages(PbThreadData* pEngine)
 		case WA_MSG_GET_CURRENTSTATUS:
 		{
 			int32_t* pCurrentStatus = (int32_t*)msg.wParam;
-			(*pCurrentStatus) = WA_Msg_GetStatus(pEngine);
-
+			(*pCurrentStatus) = WA_Msg_Get_Status(pEngine);
 			break;
 		}
 		case WA_MSG_GET_SAMPLERATE:
+			(*pErrorCode) = WA_Msg_Get_Samplerate(pEngine, (uint32_t*)msg.wParam);
 			break;
 		case WA_MSG_GET_CHANNELS:
+			(*pErrorCode) = WA_Msg_Get_Channels(pEngine, (uint16_t*)msg.wParam);
 			break;
-		case WA_MSG_GET_BITSPERSEC:
+		case WA_MSG_GET_BITSPERSAMPLE:
+			(*pErrorCode) = WA_Msg_Get_BitsPerSample(pEngine, (uint16_t*)msg.wParam);
 			break;
 		case WA_MSG_SET_OUTPUT:
 			WA_Msg_Set_Output(pEngine, msg.wParam);
@@ -154,10 +161,15 @@ static void WA_Process_Write_Output(PbThreadData* pEngine)
 	// Continue write output until end of stream.
 	// in this case simply stop playback
 	if (!pEngine->bEndOfStream)
-		if(pEngine->nCurrentStatus != WINAUDIO_STOP)
+	{
+		if (pEngine->nCurrentStatus != WINAUDIO_STOP)
 			WA_Output_FeedWithData(pEngine);
+	}
 	else
+	{
 		WA_Msg_Stop(pEngine);
+	}
+		
 }
 
 static bool WA_Process_InitInOut(PbThreadData* pEngine)
@@ -165,10 +177,14 @@ static bool WA_Process_InitInOut(PbThreadData* pEngine)
 	if (!StreamWav_Initialize(&pEngine->InputArray[WA_INPUT_WAV]))
 		return false;
 
+	if (!CircleBuffer_Initialize(&pEngine->Circle))
+		return false;
+
 	return true;
 }
 
 static void WA_Process_DeInitInOut(PbThreadData* pEngine)
 {
+	CircleBuffer_Uninitialize(&pEngine->Circle);
 	StreamWav_Deinitialize(&pEngine->InputArray[WA_INPUT_WAV]);	
 }

@@ -62,8 +62,8 @@ WINAUDIOAPI int32_t WinAudio_OpenFile(WinAudio_Handle* pHandle, const WINAUDIO_S
 /// Close current file
 /// </summary>
 /// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
-/// <returns>No Return</returns>
-WINAUDIOAPI void WinAudio_CloseFile(WinAudio_Handle* pHandle);
+/// <returns>Return WINAUDIO_OK on success, otherwise error code</returns>
+WINAUDIOAPI int32_t WinAudio_CloseFile(WinAudio_Handle* pHandle);
 
 
 /// <summary>
@@ -75,17 +75,29 @@ WINAUDIOAPI int32_t WinAudio_Play(WinAudio_Handle* pHandle);
 
 
 /// <summary>
+/// Pause an audio file
+/// </summary>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <returns></returns>
+WINAUDIOAPI int32_t WinAudio_Pause(WinAudio_Handle* pHandle);
+
+
+/// <summary>
+/// UnPause an audio file
+/// </summary>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <returns></returns>
+WINAUDIOAPI int32_t WinAudio_UnPause(WinAudio_Handle* pHandle);
+
+
+/// <summary>
 /// Stop an audio file
 /// </summary>
 /// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
 /// <returns>Return WINAUDIO_OK on success, otherwise error code</returns>
 WINAUDIOAPI int32_t WinAudio_Stop(WinAudio_Handle* pHandle);
 
-/*
-WINAUDIOAPI int32_t WinAudio_Pause(WinAudio_Handle* pHandle);
-WINAUDIOAPI int32_t WinAudio_UnPause(WinAudio_Handle* pHandle);
 
-*/
 
 
 /// <summary>
@@ -93,24 +105,87 @@ WINAUDIOAPI int32_t WinAudio_UnPause(WinAudio_Handle* pHandle);
 /// </summary>
 /// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
 /// <returns>Return BAD_PTR if pHandle param is not valid. Otherwise current status. If file is not open
-/// this function simply retur
+/// this function simply return WINAUDIO_STOP
 /// </returns>
 WINAUDIOAPI int32_t WinAudio_GetCurrentStatus(WinAudio_Handle* pHandle);
 
-// Get / Set Position
 
-// Get Duration
+/// <summary>
+/// Get Stream Samplerate
+/// </summary>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="pSamplerate">Pointer to a uint32_t variable to store Samplerate</param>
+/// <returns>Return WINAUDIO_OK on success, otherwise error code</returns>
+WINAUDIOAPI int32_t WinAudio_Get_Samplerate(WinAudio_Handle* pHandle, uint32_t* pSamplerate);
 
-// Get Current Status
+/// <summary>
+/// Get Stream Channels
+/// </summary>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="pChannels">Pointer to a uint16_t variable to store Channels</param>
+/// <returns>Return WINAUDIO_OK on success, otherwise error code</returns>
+WINAUDIOAPI int32_t WinAudio_Get_Channels(WinAudio_Handle* pHandle, uint16_t* pChannels);
 
-// Get Wave Format
 
+/// <summary>
+/// Get Stream Bits per sample
+/// </summary>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="pBps">Pointer to a uint16_t variable to store Bits per Sample</param>
+/// <returns>Return WINAUDIO_OK on success, otherwise error code</returns>
+WINAUDIOAPI int32_t WinAudio_Get_BitsPerSample(WinAudio_Handle* pHandle, uint16_t* pBps);
 
-// Get Playing Buffer
+/// <summary>
+/// 
+/// </summary>
+/// <param name="pHandle"></param>
+/// <param name="puPosition"></param>
+/// <returns></returns>
+WINAUDIOAPI int32_t WinAudio_Get_Position(WinAudio_Handle* pHandle, uint64_t* puPosition);
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="pHandle"></param>
+/// <param name="uPosition"></param>
+/// <returns></returns>
+WINAUDIOAPI int32_t WinAudio_Set_Position(WinAudio_Handle* pHandle, uint64_t uPosition);
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="pHandle"></param>
+/// <param name="puDuration"></param>
+/// <returns></returns>
+WINAUDIOAPI int32_t WinAudio_Get_Duration(WinAudio_Handle* pHandle, uint64_t* puDuration);
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="pHandle"></param>
+/// <param name="pBuffer"></param>
+/// <param name="nLen"></param>
+/// <returns></returns>
+WINAUDIOAPI int32_t WinAudio_Get_Buffer(WinAudio_Handle* pHandle, int8_t* pBuffer, int32_t nLen);
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="pHandle"></param>
+/// <param name="pValue"></param>
+/// <returns></returns>
+WINAUDIOAPI int32_t WinAudio_Get_Volume(WinAudio_Handle* pHandle, uint8_t* pValue);
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="pHandle"></param>
+/// <param name="pValue"></param>
+/// <returns></returns>
+WINAUDIOAPI int32_t WinAudio_Set_Volume(WinAudio_Handle* pHandle, uint8_t uValue);
 
 #ifdef __cplusplus
-}
+} // END extern "C"
 #endif
 
 #endif

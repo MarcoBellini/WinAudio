@@ -7,13 +7,40 @@
 
 struct WinAudio_Handle_Struct
 {
-
 	HANDLE hPlaybackHandle;
 	HANDLE hEvents[WA_EVENT_MAX]; 
 	DWORD dwThreadId;
-	int32_t nOutput;
-	
+	int32_t nOutput;	
 };
+
+/// <summary>
+/// Send a Message to Playback Thread and wait a response
+/// </summary>
+/// <param name="pHandle">Valid Handle</param>
+/// <param name="uMsg">A message defined in WA_Macros.h</param>
+/// <param name="wParam">First Param</param>
+/// <param name="lParam">Second Param</param>
+/// <returns>True on success</returns>
+static bool WinAudio_Post(WinAudio_Handle* pHandle, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	DWORD dwResult;
+
+	// Send a message to a Playback Thread
+	if (!PostThreadMessage(pHandle->dwThreadId, uMsg, wParam, lParam))
+		return false;
+
+	// Notify Playback Thread to process in messages
+	if (!SetEvent(pHandle->hEvents[WA_EVENT_MESSAGE]))
+		return false;
+
+	// Wait a Playback Thread Response (TODO: Use a Timeout value here??)
+	dwResult = WaitForSingleObject(pHandle->hEvents[WA_EVENT_REPLY], INFINITE);
+
+	if (dwResult != WAIT_OBJECT_0)
+		return false;
+
+	return true;
+}
 
 
 
@@ -104,9 +131,24 @@ WinAudio_Handle* WinAudio_New(int32_t nOutput, int32_t* pnErrorCode)
 	}
 
 	// Notify Choosed Output mode
-	PostThreadMessage(pNewInstance->dwThreadId, WA_MSG_SET_OUTPUT, pNewInstance->nOutput, 0);
-	SetEvent(pNewInstance->hEvents[WA_EVENT_MESSAGE]);
-	WaitForSingleObject(pNewInstance->hEvents[WA_EVENT_REPLY], INFINITE);
+	if (!WinAudio_Post(pNewInstance, WA_MSG_SET_OUTPUT, pNewInstance->nOutput, 0))
+	{
+		CloseHandle(pNewInstance->hEvents[WA_EVENT_REPLY]);
+		CloseHandle(pNewInstance->hEvents[WA_EVENT_DELETE]);
+		CloseHandle(pNewInstance->hEvents[WA_EVENT_MESSAGE]);
+		CloseHandle(pNewInstance->hEvents[WA_EVENT_OUTPUT]);
+		pNewInstance->hEvents[WA_EVENT_REPLY] = NULL;
+		pNewInstance->hEvents[WA_EVENT_DELETE] = NULL;
+		pNewInstance->hEvents[WA_EVENT_MESSAGE] = NULL;
+		pNewInstance->hEvents[WA_EVENT_OUTPUT] = NULL;
+
+		free(pNewInstance);
+
+		pNewInstance = NULL;
+
+		(*pnErrorCode) = WINAUDIO_PBTHREADCREATIONFAIL;
+		return NULL;
+	}
 
 	// Success
 	(*pnErrorCode) = WINAUDIO_OK;
@@ -151,7 +193,7 @@ void WinAudio_Delete(WinAudio_Handle* pHandle)
 }
 
 
-WINAUDIOAPI int32_t WinAudio_OpenFile(WinAudio_Handle* pHandle, const WINAUDIO_STRPTR pFilePath)
+int32_t WinAudio_OpenFile(WinAudio_Handle* pHandle, const WINAUDIO_STRPTR pFilePath)
 {
 	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
 
@@ -164,67 +206,210 @@ WINAUDIOAPI int32_t WinAudio_OpenFile(WinAudio_Handle* pHandle, const WINAUDIO_S
 		return WINAUDIO_FILENOTFOUND;
 
 	// Try to Open File
-	PostThreadMessage(pHandle->dwThreadId, WA_MSG_OPENFILE, (WPARAM) pFilePath, (LPARAM) &nErrorCode);
-	SetEvent(pHandle->hEvents[WA_EVENT_MESSAGE]);
-	WaitForSingleObject(pHandle->hEvents[WA_EVENT_REPLY], INFINITE);
+	if (!WinAudio_Post(pHandle, WA_MSG_OPENFILE, (WPARAM)pFilePath, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
 
 	return nErrorCode;
 }
 
 
-WINAUDIOAPI void WinAudio_CloseFile(WinAudio_Handle* pHandle)
-{
-	// Check if we have a valid pointer
-	if (pHandle)
-	{
-		// Close File
-		PostThreadMessage(pHandle->dwThreadId, WA_MSG_CLOSEFILE, 0, 0);
-		SetEvent(pHandle->hEvents[WA_EVENT_MESSAGE]);
-		WaitForSingleObject(pHandle->hEvents[WA_EVENT_REPLY], INFINITE);
-	}
-}
-
-
-WINAUDIOAPI int32_t WinAudio_Play(WinAudio_Handle* pHandle)
-{
-	int32_t nErrorCode = WINAUDIO_CANNOTPLAYFILE;
-
-	if(!pHandle)
-		return WINAUDIO_BADPTR;
-
-	PostThreadMessage(pHandle->dwThreadId, WA_MSG_PLAY, 0, (LPARAM)&nErrorCode);
-	SetEvent(pHandle->hEvents[WA_EVENT_MESSAGE]);
-	WaitForSingleObject(pHandle->hEvents[WA_EVENT_REPLY], INFINITE);
-
-	return nErrorCode;
-}
-
-WINAUDIOAPI int32_t WinAudio_Stop(WinAudio_Handle* pHandle)
+int32_t WinAudio_CloseFile(WinAudio_Handle* pHandle)
 {
 	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
 
 	if (!pHandle)
 		return WINAUDIO_BADPTR;
 
-	PostThreadMessage(pHandle->dwThreadId, WA_MSG_STOP, 0, (LPARAM)&nErrorCode);
-	SetEvent(pHandle->hEvents[WA_EVENT_MESSAGE]);
-	WaitForSingleObject(pHandle->hEvents[WA_EVENT_REPLY], INFINITE);
+	if (!WinAudio_Post(pHandle, WA_MSG_CLOSEFILE, 0, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
 
 	return nErrorCode;
 }
 
-WINAUDIOAPI int32_t WinAudio_GetCurrentStatus(WinAudio_Handle* pHandle)
+
+int32_t WinAudio_Play(WinAudio_Handle* pHandle)
+{
+	int32_t nErrorCode = WINAUDIO_CANNOTPLAYFILE;
+
+	if(!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_PLAY, 0, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_Pause(WinAudio_Handle* pHandle)
+{
+	int32_t nErrorCode = WINAUDIO_CANNOTCHANGESTATUS;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_PAUSE, 0, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+
+int32_t WinAudio_UnPause(WinAudio_Handle* pHandle)
+{
+	int32_t nErrorCode = WINAUDIO_CANNOTCHANGESTATUS;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_UNPAUSE, 0, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_Stop(WinAudio_Handle* pHandle)
+{
+	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_STOP, 0, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_GetCurrentStatus(WinAudio_Handle* pHandle)
 {
 	int32_t nCurrentStatus = WINAUDIO_STOP;
 
 	if (!pHandle)
 		return WINAUDIO_BADPTR;
 
-	PostThreadMessage(pHandle->dwThreadId, WA_MSG_GET_CURRENTSTATUS, (WPARAM)&nCurrentStatus, 0);
-	SetEvent(pHandle->hEvents[WA_EVENT_MESSAGE]);
-	WaitForSingleObject(pHandle->hEvents[WA_EVENT_REPLY], INFINITE);
+	if (!WinAudio_Post(pHandle, WA_MSG_GET_CURRENTSTATUS, (WPARAM)&nCurrentStatus, 0))
+		return WINAUDIO_REQUESTFAIL;
 
 	return nCurrentStatus;
+}
+
+int32_t WinAudio_Get_Samplerate(WinAudio_Handle* pHandle, uint32_t* pSamplerate)
+{
+	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_GET_SAMPLERATE, (WPARAM)pSamplerate, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_Get_Channels(WinAudio_Handle* pHandle, uint16_t* pChannels)
+{
+	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_GET_CHANNELS, (WPARAM)pChannels, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_Get_BitsPerSample(WinAudio_Handle* pHandle, uint16_t* pBps)
+{
+	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_GET_BITSPERSAMPLE, (WPARAM)pBps, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_Get_Position(WinAudio_Handle* pHandle, uint64_t* puPosition)
+{
+	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_GET_POSITION, (WPARAM)puPosition, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_Set_Position(WinAudio_Handle* pHandle, uint64_t uPosition)
+{
+	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_SET_POSITION, (WPARAM)uPosition, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_Get_Duration(WinAudio_Handle* pHandle, uint64_t* puDuration)
+{
+	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_GET_DURATION, (WPARAM)puDuration, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
 
 
+int32_t WinAudio_Get_Buffer(WinAudio_Handle* pHandle, int8_t* pBuffer, int32_t nLen)
+{
+	int32_t nErrorCode;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	// WARNING: Store Buffer Length in nErrorCode 
+	nErrorCode = nLen;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_GET_PLAYINGBUFFER, (WPARAM)pBuffer, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_Get_Volume(WinAudio_Handle* pHandle, uint8_t* pValue)
+{
+	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_GET_VOLUME, (WPARAM)pValue, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_Set_Volume(WinAudio_Handle* pHandle, uint8_t pValue)
+{
+	int32_t nErrorCode = WINAUDIO_FILENOTOPEN;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_SET_VOLUME, (WPARAM)pValue, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
 }
