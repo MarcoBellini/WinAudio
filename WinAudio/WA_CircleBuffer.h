@@ -13,7 +13,7 @@ typedef struct tagWA_CircleBuffer* BUFFER_HANDLE;
 typedef bool (*pCircleBuffer_Create)(BUFFER_HANDLE pHandle, uint32_t uBufferSize);
 typedef void (*pCircleBuffer_Destroy)(BUFFER_HANDLE pHandle);
 typedef void (*pCircleBuffer_Reset)(BUFFER_HANDLE pHandle);
-typedef bool (*pCircleBuffer_Write)(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uBufferLen);
+typedef bool (*pCircleBuffer_Write)(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uBufferLen, bool bForceOverWrite);
 typedef bool (*pCircleBuffer_Read)(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uBufferLen);
 typedef bool (*pCircleBuffer_ReadFrom)(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uStartPosition, uint32_t uBufferLen);
 typedef bool (*pCircleBuffer_FreeSpace)(BUFFER_HANDLE pHandle, uint32_t* puFreeSpace);

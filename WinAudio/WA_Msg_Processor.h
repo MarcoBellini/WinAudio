@@ -13,6 +13,12 @@ int32_t WA_Msg_Get_Status(PbThreadData* pEngine);
 int32_t WA_Msg_Get_Samplerate(PbThreadData * pEngine, uint32_t *pSamplerate);
 int32_t WA_Msg_Get_Channels(PbThreadData* pEngine, uint16_t* pChannels);
 int32_t WA_Msg_Get_BitsPerSample(PbThreadData* pEngine, uint16_t* pBps);
+int32_t WA_Msg_Get_Volume(PbThreadData* pEngine, uint8_t* pVolume);
+int32_t WA_Msg_Set_Volume(PbThreadData* pEngine, uint8_t uVolume);
+int32_t WA_Msg_Get_Position(PbThreadData* pEngine, uint64_t *pPosition);
+int32_t WA_Msg_Set_Position(PbThreadData* pEngine, uint64_t* pPosition);
+int32_t WA_Msg_Get_Duration(PbThreadData* pEngine, uint64_t* pDuration);
+int32_t WA_Msg_Get_Buffer(PbThreadData* pEngine, int8_t* pBuffer, uint32_t nDataToRead);
 void WA_Msg_Set_Output(PbThreadData* pEngine, int32_t nOutput);
 
 

@@ -110,7 +110,7 @@ static void WA_Process_Messages(PbThreadData* pEngine)
 			(*pErrorCode) = WA_Msg_Close(pEngine);
 			break;
 		case WA_MSG_PLAY:
-			(*pErrorCode) =  WA_Msg_Play(pEngine);
+			(*pErrorCode) = WA_Msg_Play(pEngine);
 			break;
 		case WA_MSG_PAUSE:
 			(*pErrorCode) = WA_Msg_Pause(pEngine);
@@ -122,16 +122,25 @@ static void WA_Process_Messages(PbThreadData* pEngine)
 			(*pErrorCode) = WA_Msg_Stop(pEngine);
 			break;
 		case WA_MSG_SET_VOLUME:
+			(*pErrorCode) = WA_Msg_Set_Volume(pEngine, (uint8_t)msg.wParam);
 			break;
 		case WA_MSG_GET_VOLUME:
+			(*pErrorCode) = WA_Msg_Get_Volume(pEngine, (uint8_t*)msg.wParam);
 			break;
 		case WA_MSG_GET_PLAYINGBUFFER:
+		{
+			uint32_t uBufferLen = (*pErrorCode); // Store Buffer len in lParam value. This is used to return error code.
+			(*pErrorCode) = WA_Msg_Get_Buffer(pEngine, (int8_t*)msg.wParam, uBufferLen);
 			break;
+		}
 		case WA_MSG_SET_POSITION:
+			(*pErrorCode) = WA_Msg_Set_Position(pEngine, (uint64_t*)msg.wParam);
 			break;
 		case WA_MSG_GET_POSITION:
+			(*pErrorCode) = WA_Msg_Get_Position(pEngine, (uint64_t*)msg.wParam);
 			break;
 		case WA_MSG_GET_DURATION:
+			(*pErrorCode) = WA_Msg_Get_Duration(pEngine, (uint64_t*)msg.wParam);
 			break;
 		case WA_MSG_GET_CURRENTSTATUS:
 		{
@@ -177,6 +186,9 @@ static bool WA_Process_InitInOut(PbThreadData* pEngine)
 	if (!StreamWav_Initialize(&pEngine->InputArray[WA_INPUT_WAV]))
 		return false;
 
+	if(!MediaFoundation_Initialize(&pEngine->InputArray[WA_INPUT_MFOUNDATION]))
+		return false;
+
 	if (!CircleBuffer_Initialize(&pEngine->Circle))
 		return false;
 
@@ -186,5 +198,6 @@ static bool WA_Process_InitInOut(PbThreadData* pEngine)
 static void WA_Process_DeInitInOut(PbThreadData* pEngine)
 {
 	CircleBuffer_Uninitialize(&pEngine->Circle);
+	MediaFoundation_Deinitialize(&pEngine->InputArray[WA_INPUT_MFOUNDATION]);
 	StreamWav_Deinitialize(&pEngine->InputArray[WA_INPUT_WAV]);	
 }

@@ -8,9 +8,12 @@
 #include "WA_PlaybackThread.h"
 #include "WA_Output_Writer.h"
 #include "WA_Msg_Processor.h"
+#include <math.h>
 
 // Private Members
 static int32_t WA_Msg_GetDecoder(PbThreadData* pEngine, const WINAUDIO_STRPTR pFilePath);
+static inline uint64_t WA_Msg_BytesToMs(PbThreadData* pEngine, uint64_t uInBytes);
+static inline uint64_t WA_Msg_MsToBytes(PbThreadData* pEngine, uint64_t uInMs);
 
 
 int32_t WA_Msg_Open(PbThreadData* pEngine, const WINAUDIO_STRPTR pFilePath)
@@ -56,7 +59,7 @@ int32_t WA_Msg_Play(PbThreadData* pEngine)
 	WA_Input* pIn;
 	WA_Output* pOut;
 	WA_CircleBuffer* pCircle;
-	uint32_t uMaxOutputLen;
+	uint32_t uMaxOutputMs, uMaxOutputBytes;
 
 	if (!pEngine->bFileIsOpen)
 		return WINAUDIO_FILENOTOPEN;
@@ -77,6 +80,9 @@ int32_t WA_Msg_Play(PbThreadData* pEngine)
 		return WINAUDIO_CANNOTPLAYFILE;
 	}
 
+	pEngine->uAvgBytesPerSec = (pEngine->uSamplerate * pEngine->uChannels * pEngine->uBitsPerSample) / 8;
+	pEngine->uBlockAlign = (pEngine->uChannels * pEngine->uBitsPerSample) / 8;
+
 	switch (pEngine->uActiveOutput)
 	{
 	case WA_OUTPUT_WASAPI:
@@ -92,26 +98,26 @@ int32_t WA_Msg_Play(PbThreadData* pEngine)
 		break;
 	}
 
-	uMaxOutputLen = WA_OUTPUT_LEN_MS;
+	uMaxOutputMs = WA_OUTPUT_LEN_MS;
 
-	if(!pOut->output_CreateDevice(pOut, pEngine->uSamplerate, pEngine->uChannels, pEngine->uBitsPerSample, &uMaxOutputLen))
+	// Remeber: Output can change the size
+	if(!pOut->output_CreateDevice(pOut, pEngine->uSamplerate, pEngine->uChannels, pEngine->uBitsPerSample, &uMaxOutputMs))
 	{
 		pIn->input_CloseFile(pIn);
 		return WINAUDIO_CANNOTPLAYFILE;
 	}
 
-	pEngine->bIsStreamSeekable = pIn->input_IsStreamSeekable(pIn);
-
 	// Use uMaxOutputLen to create a circle buffer to store spectrum data
-	_ASSERT(uMaxOutputLen > 0);
-	pCircle->CircleBuffer_Create(pCircle, uMaxOutputLen);
+	_ASSERT(uMaxOutputMs > 0);
+	uMaxOutputBytes = (uint32_t) WA_Msg_MsToBytes(pEngine, uMaxOutputMs);
+	pCircle->CircleBuffer_Create(pCircle, uMaxOutputBytes);
 
 	// Write Data to Output before play
 	WA_Output_FeedWithData(pEngine);
 
 	pEngine->nCurrentStatus = WINAUDIO_PLAY;
 	pEngine->bEndOfStream = false;
-	pEngine->uOutputMaxLatency = uMaxOutputLen;
+	pEngine->uOutputMaxLatency = uMaxOutputBytes;
 
 	if (!pOut->output_DevicePlay(pOut))
 		return WINAUDIO_CANNOTCHANGESTATUS;
@@ -241,6 +247,162 @@ int32_t WA_Msg_Get_BitsPerSample(PbThreadData* pEngine, uint16_t* pBps)
 	return WINAUDIO_OK;
 }
 
+int32_t WA_Msg_Get_Volume(PbThreadData* pEngine, uint8_t* pVolume)
+{
+	WA_Output* pOut;
+
+	// Get Volume on Active Device
+	if (pEngine->nCurrentStatus == WINAUDIO_STOP)
+		return WINAUDIO_REQUESTFAIL;
+
+	pOut = &pEngine->OutputArray[pEngine->uActiveOutput];
+
+	if(!pOut->output_DeviceVolume(pOut, pVolume, false))
+		return WINAUDIO_REQUESTFAIL;
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Set_Volume(PbThreadData* pEngine, uint8_t uVolume)
+{
+	WA_Output* pOut;
+
+	// Set Volume on Active Device
+	if (pEngine->nCurrentStatus == WINAUDIO_STOP)
+		return WINAUDIO_REQUESTFAIL;
+
+	pOut = &pEngine->OutputArray[pEngine->uActiveOutput];
+
+	if (!pOut->output_DeviceVolume(pOut, &uVolume, true))
+		return WINAUDIO_REQUESTFAIL;
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Get_Position(PbThreadData* pEngine, uint64_t* pPosition)
+{
+	WA_Input* pIn;
+	uint64_t uBytesPosition;
+
+	if (!pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
+
+	if (pEngine->nCurrentStatus != WINAUDIO_PLAY)
+		return WINAUDIO_REQUESTFAIL;
+
+	pIn = &pEngine->InputArray[pEngine->uActiveInput];
+
+	if (!pIn->input_Position(pIn, &uBytesPosition))
+		return WINAUDIO_REQUESTFAIL;
+
+	(*pPosition) = WA_Msg_BytesToMs(pEngine, uBytesPosition);
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Set_Position(PbThreadData* pEngine, uint64_t* pPosition)
+{
+	WA_Input* pIn;
+	uint64_t uBytesPosition;
+
+	if (!pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
+
+	if (pEngine->nCurrentStatus != WINAUDIO_PLAY)
+		return WINAUDIO_REQUESTFAIL;
+
+	pIn = &pEngine->InputArray[pEngine->uActiveInput];
+
+	if(!pIn->input_IsStreamSeekable(pIn))
+		return WINAUDIO_REQUESTFAIL;
+
+	uBytesPosition = WA_Msg_MsToBytes(pEngine, (*pPosition));
+
+	if(!pIn->input_Seek(pIn, uBytesPosition, WA_SEEK_BEGIN))
+		return WINAUDIO_REQUESTFAIL;
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Get_Duration(PbThreadData* pEngine, uint64_t* pDuration)
+{
+	WA_Input* pIn;
+	uint64_t uBytesDuration;
+
+	if (!pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
+
+	if (pEngine->nCurrentStatus != WINAUDIO_PLAY)
+		return WINAUDIO_REQUESTFAIL;
+
+	pIn = &pEngine->InputArray[pEngine->uActiveInput];
+
+	if(!pIn->input_Duration(pIn, &uBytesDuration))
+		return WINAUDIO_REQUESTFAIL;
+
+	(*pDuration) = WA_Msg_BytesToMs(pEngine, uBytesDuration);
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Get_Buffer(PbThreadData* pEngine, int8_t* pBuffer, uint32_t nDataToRead)
+{
+	WA_Output* pOut;
+	WA_CircleBuffer* pCircle;
+	float fPlayTimeMs, fWriteTimeMs, fLatency;
+	uint32_t uPositionInBytes;
+
+	if (!pEngine->bFileIsOpen)
+		return WINAUDIO_FILENOTOPEN;
+
+	if (pEngine->nCurrentStatus != WINAUDIO_PLAY)
+		return WINAUDIO_REQUESTFAIL;
+
+	if (pEngine->uOutputMaxLatency < nDataToRead)
+		return WINAUDIO_OUTOFBUFFER;
+
+	pOut = &pEngine->OutputArray[pEngine->uActiveOutput];
+	pCircle = &pEngine->Circle;
+
+	if (!pOut->output_GetWriteTime(pOut, &fWriteTimeMs))
+		return WINAUDIO_REQUESTFAIL;
+
+	if (!pOut->output_GetPlayTime(pOut, &fPlayTimeMs))
+		return WINAUDIO_REQUESTFAIL;
+
+	// Calculate Real buffer Latency
+	fLatency = fWriteTimeMs - fPlayTimeMs;
+
+	// If Latency is bigger than buffer size, consider this gap 
+	// to adjust the position of play time ms
+	if (fLatency > WA_OUTPUT_LEN_MS_F)
+	{
+		fPlayTimeMs += fLatency - WA_OUTPUT_LEN_MS_F; // TODO: This is userful? test! test!
+	}
+
+	// Calculate module
+	fPlayTimeMs = fmodf(fPlayTimeMs, WA_OUTPUT_LEN_MS_F);
+	fWriteTimeMs = fmodf(fWriteTimeMs, WA_OUTPUT_LEN_MS_F);
+
+	// Round to a nearest int
+	fPlayTimeMs = rintf(fPlayTimeMs);
+
+	//_RPTF1(_CRT_WARN, "PlayTime: %f - Write Time: %f \n", fPlayTimeMs, fWriteTimeMs);
+
+	// Cast to an unsigned int value and convert to a byte position
+	uPositionInBytes = (pEngine->uAvgBytesPerSec * (uint32_t)fPlayTimeMs) / 1000;
+
+	// Align to PCM blocks
+	uPositionInBytes = uPositionInBytes - (uPositionInBytes % pEngine->uBlockAlign);
+
+	// Read data from Circle buffer
+	if (!pCircle->CircleBuffer_ReadFrom(pCircle, pBuffer, uPositionInBytes, nDataToRead))
+		return WINAUDIO_REQUESTFAIL;
+
+
+	return WINAUDIO_OK;
+}
+
 
 void WA_Msg_Set_Output(PbThreadData* pEngine, int32_t nOutput)
 {
@@ -283,3 +445,22 @@ static int32_t WA_Msg_GetDecoder(PbThreadData* pEngine, const WINAUDIO_STRPTR pF
 	return uDecoderIndex;
 }
 
+static inline uint64_t WA_Msg_BytesToMs(PbThreadData* pEngine, uint64_t uInBytes)
+{
+	_ASSERT(pEngine->uAvgBytesPerSec > 0);
+
+	return (uInBytes / pEngine->uAvgBytesPerSec) * 1000;
+}
+
+static inline uint64_t WA_Msg_MsToBytes(PbThreadData* pEngine, uint64_t uInMs)
+{
+	uint64_t uOutBytes;
+
+	_ASSERT(pEngine->uAvgBytesPerSec > 0);
+	_ASSERT(pEngine->uBlockAlign > 0);
+
+	uOutBytes = (uInMs * pEngine->uAvgBytesPerSec) / 1000;
+	uOutBytes = uOutBytes - (uOutBytes % pEngine->uBlockAlign);
+
+	return uOutBytes;
+}

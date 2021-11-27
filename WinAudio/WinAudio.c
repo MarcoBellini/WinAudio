@@ -352,7 +352,7 @@ int32_t WinAudio_Set_Position(WinAudio_Handle* pHandle, uint64_t uPosition)
 	if (!pHandle)
 		return WINAUDIO_BADPTR;
 
-	if (!WinAudio_Post(pHandle, WA_MSG_SET_POSITION, (WPARAM)uPosition, (LPARAM)&nErrorCode))
+	if (!WinAudio_Post(pHandle, WA_MSG_SET_POSITION, (WPARAM)&uPosition, (LPARAM)&nErrorCode))
 		return WINAUDIO_REQUESTFAIL;
 
 	return nErrorCode;
@@ -372,7 +372,7 @@ int32_t WinAudio_Get_Duration(WinAudio_Handle* pHandle, uint64_t* puDuration)
 }
 
 
-int32_t WinAudio_Get_Buffer(WinAudio_Handle* pHandle, int8_t* pBuffer, int32_t nLen)
+int32_t WinAudio_Get_Buffer(WinAudio_Handle* pHandle, int8_t* pBuffer, uint32_t nLen)
 {
 	int32_t nErrorCode;
 
@@ -380,7 +380,8 @@ int32_t WinAudio_Get_Buffer(WinAudio_Handle* pHandle, int8_t* pBuffer, int32_t n
 		return WINAUDIO_BADPTR;
 
 	// WARNING: Store Buffer Length in nErrorCode 
-	nErrorCode = nLen;
+	// after this call, the value is overwrited with error code
+	nErrorCode = (int32_t) nLen;
 
 	if (!WinAudio_Post(pHandle, WA_MSG_GET_PLAYINGBUFFER, (WPARAM)pBuffer, (LPARAM)&nErrorCode))
 		return WINAUDIO_REQUESTFAIL;

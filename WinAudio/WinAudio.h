@@ -166,21 +166,21 @@ WINAUDIOAPI int32_t WinAudio_Get_Duration(WinAudio_Handle* pHandle, uint64_t* pu
 /// <param name="pBuffer"></param>
 /// <param name="nLen"></param>
 /// <returns></returns>
-WINAUDIOAPI int32_t WinAudio_Get_Buffer(WinAudio_Handle* pHandle, int8_t* pBuffer, int32_t nLen);
+WINAUDIOAPI int32_t WinAudio_Get_Buffer(WinAudio_Handle* pHandle, int8_t* pBuffer, uint32_t nLen);
 
 /// <summary>
-/// 
+/// Get Device Volume (Only work on playing steams)
 /// </summary>
-/// <param name="pHandle"></param>
-/// <param name="pValue"></param>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="pValue">Pointer to an unsigned byte(0 - 255)</param>
 /// <returns></returns>
 WINAUDIOAPI int32_t WinAudio_Get_Volume(WinAudio_Handle* pHandle, uint8_t* pValue);
 
 /// <summary>
-/// 
+/// Set Device Volume (Only work on playing steams)
 /// </summary>
-/// <param name="pHandle"></param>
-/// <param name="pValue"></param>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="uValue">An unsigned byte value</param>
 /// <returns></returns>
 WINAUDIOAPI int32_t WinAudio_Set_Volume(WinAudio_Handle* pHandle, uint8_t uValue);
 

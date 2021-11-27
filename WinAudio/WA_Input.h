@@ -50,4 +50,12 @@ typedef struct tagWA_Input
 bool StreamWav_Initialize(WA_Input* pStreamInput);
 bool StreamWav_Deinitialize(WA_Input* pStreamInput);
 
+/* Media Foundation Stream Input Module
+*  Supported file:
+*  https://docs.microsoft.com/en-us/windows/win32/medfound/supported-media-formats-in-media-foundation
+*/
+bool MediaFoundation_Initialize(WA_Input* pStreamInput);
+bool MediaFoundation_Deinitialize(WA_Input* pStreamInput);
+
+
 #endif

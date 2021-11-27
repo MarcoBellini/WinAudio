@@ -39,11 +39,12 @@ typedef  char WINAUDIO_STR;
 #define WA_OUTPUT_DSOUND			1
 #define WA_OUTPUT_MAX				(WA_OUTPUT_DSOUND + 1)
 #define WA_OUTPUT_LEN_MS			600U
+#define WA_OUTPUT_LEN_MS_F			600.0f
 
 // Inputs Specs
 #define WA_INPUT_WAV				0
 #define WA_INPUT_MFOUNDATION		1
-#define WA_INPUT_MAX				(WA_INPUT_WAV + 1)
+#define WA_INPUT_MAX				(WA_INPUT_MFOUNDATION + 1)
 #define WA_INPUT_INVALID			-1
 
 

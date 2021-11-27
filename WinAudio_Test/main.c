@@ -3,7 +3,8 @@
 #include "..\WinAudio\WinAudio.h"
 #include <Windows.h>
 
-
+// Private Members
+void Console_Print_Time_Formatted(uint64_t uPosition, uint64_t uDuration);
 
 
 int main()
@@ -13,7 +14,8 @@ int main()
 	WINAUDIO_STR pFilePath[256];
 	uint32_t uSamplerate;
 	uint16_t uChannels, uBps;
-
+	uint64_t uPosition, uDuration;
+	int8_t Buffer[256];
 
 
 	pHandle = WinAudio_New(WINAUDIO_WASAPI, &nErrorCode);
@@ -46,8 +48,11 @@ int main()
 			// Wait Until Output is Playing
 			while (WinAudio_GetCurrentStatus(pHandle) != WINAUDIO_STOP)
 			{
-				Sleep(200);
-				// Write Position
+				WinAudio_Get_Duration(pHandle, &uDuration);
+				WinAudio_Get_Position(pHandle, &uPosition);
+				Console_Print_Time_Formatted(uPosition, uDuration);
+				WinAudio_Get_Buffer(pHandle, Buffer, 256U);
+				Sleep(1000);				
 			}			
 
 			WinAudio_CloseFile(pHandle);
@@ -62,4 +67,28 @@ int main()
 
 
 	return 0;
+}
+
+void Console_Print_Time_Formatted(uint64_t uPosition, uint64_t uDuration)
+{
+	uint32_t uHour, uMinute, uSeconds;
+
+	uSeconds = (uint32_t)(uPosition / 1000);
+	uMinute = uSeconds / 60;
+	uHour = uMinute / 60;
+
+	uSeconds = uSeconds % 60;
+	uMinute = uMinute % 60;
+
+	wprintf(L"Playback: %02d:%02d:%02d", uHour, uMinute, uSeconds);
+
+
+	uSeconds = (uint32_t)(uDuration / 1000);
+	uMinute = uSeconds / 60;
+	uHour = uMinute / 60;
+
+	uSeconds = uSeconds % 60;
+	uMinute = uMinute % 60;
+
+	wprintf(L" - %02d:%02d:%02d \r", uHour, uMinute, uSeconds);
 }

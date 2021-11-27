@@ -12,14 +12,14 @@ bool WA_Output_FeedWithData(PbThreadData* pEngine)
 {
 	WA_Input* pIn;
 	WA_Output* pOut;
-	// WA_CircleBuffer* pCircle;
+	WA_CircleBuffer* pCircle;
 	uint64_t uDuration, uPosition;
 	uint32_t uBytesToWrite, uBytesReaded;
 	int8_t* pBuffer;
 
 	pIn = &pEngine->InputArray[pEngine->uActiveInput];
 	pOut = &pEngine->OutputArray[pEngine->uActiveOutput];
-	// pCircle = &pEngine->Circle;
+	pCircle = &pEngine->Circle;
 
 	if (!pOut->output_CanWrite(pOut))
 		return false;
@@ -41,7 +41,7 @@ bool WA_Output_FeedWithData(PbThreadData* pEngine)
 	if (!pBuffer)
 		return false;
 	
-	pEngine->bEndOfStream = ((uDuration - uPosition) == 0) ? true : false;
+	
 
 
 	if (pIn->input_Read(pIn, pBuffer, uBytesToWrite, &uBytesReaded))
@@ -49,9 +49,23 @@ bool WA_Output_FeedWithData(PbThreadData* pEngine)
 		if (uBytesReaded > 0)
 		{
 			pOut->output_WriteToDevice(pOut, pBuffer, uBytesReaded);
+
+			// TODO: Process Here DSP + Write Circle Buffer for spectrum
+
+			pCircle->CircleBuffer_Write(pCircle, pBuffer, uBytesReaded, true);
+			pEngine->bEndOfStream = ((uDuration - uPosition) == 0) ? true : false;
 		}
-		// TODO: Process Here DSP + Write Circle Buffer for spectrum
+		else
+		{
+			// When we fail to read force end of stream
+			pEngine->bEndOfStream = true;
+		}
 		
+	}
+	else
+	{
+		// When we fail to read force end of stream
+		pEngine->bEndOfStream = true;
 	}
 
 	free(pBuffer);

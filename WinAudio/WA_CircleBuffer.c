@@ -146,7 +146,7 @@ void CircleBuffer_Reset(BUFFER_HANDLE pHandle)
 
 }
 
-bool CircleBuffer_Write(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uBufferLen)
+bool CircleBuffer_Write(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uBufferLen, bool bForceOverWrite)
 {
 	CircleBufferInstance* pInstance = (CircleBufferInstance*)pHandle->pModulePrivateData;
 
@@ -154,8 +154,8 @@ bool CircleBuffer_Write(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uBu
 		return false;
 
 	// Check if there is enough free space to
-	// fill the requested len
-	if ((pInstance->uBufferSize - pInstance->uValidData) < uBufferLen)
+	// fill the requested len (Only if we don't want to overwrite data)
+	if (((pInstance->uBufferSize - pInstance->uValidData) < uBufferLen) && (!bForceOverWrite))
 		return false;
 
 	// Check if we need to split the read in two parts
