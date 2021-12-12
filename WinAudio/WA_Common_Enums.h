@@ -43,4 +43,16 @@ enum WINAUDIO_PLAYBACK_STATUS
 	WINAUDIO_STOP
 };
 
+/// <summary>
+/// Define FFT Sample Size (power of 2)
+/// </summary>
+enum WINAUDIO_FFT_SIZE
+{
+	WINAUDIO_FFT_512 =	512,
+	WINAUDIO_FFT_1024 = 1024,
+	WINAUDIO_FFT_2048 = 2048,
+	WINAUDIO_FFT_4096 = 4096,
+	WINAUDIO_FFT_8192 = 8192
+};
+
 #endif

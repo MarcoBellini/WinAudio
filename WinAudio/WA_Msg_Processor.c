@@ -142,8 +142,18 @@ int32_t WA_Msg_Stop(PbThreadData* pEngine)
 	pOut = &pEngine->OutputArray[pEngine->uActiveOutput];
 	pCircle = &pEngine->Circle;
 
-	if(!pOut->output_DeviceStop(pOut))
-		return WINAUDIO_CANNOTCHANGESTATUS;
+	// Fix Stop On Pause
+	if (pEngine->nCurrentStatus == WINAUDIO_PAUSE)
+	{
+		// Call Stop Method, but don't check for errors
+		pOut->output_DeviceStop(pOut);
+	}
+	else
+	{
+		if (!pOut->output_DeviceStop(pOut))
+			return WINAUDIO_CANNOTCHANGESTATUS;
+	}
+
 
 	pOut->output_CloseDevice(pOut);
 
@@ -395,7 +405,7 @@ int32_t WA_Msg_Get_Buffer(PbThreadData* pEngine, int8_t* pBuffer, uint32_t nData
 	// Align to PCM blocks
 	uPositionInBytes = uPositionInBytes - (uPositionInBytes % pEngine->uBlockAlign);
 
-	// Read data from Circle buffer
+	// Read data from Circle buffer (data is always valid. Write index is > of read index)
 	if (!pCircle->CircleBuffer_ReadFrom(pCircle, pBuffer, uPositionInBytes, nDataToRead))
 		return WINAUDIO_REQUESTFAIL;
 

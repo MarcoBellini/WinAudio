@@ -27,11 +27,12 @@ static bool WinAudio_Post(WinAudio_Handle* pHandle, UINT uMsg, WPARAM wParam, LP
 
 	// Send a message to a Playback Thread
 	if (!PostThreadMessage(pHandle->dwThreadId, uMsg, wParam, lParam))
-		return false;
-
+		return false;	
+	
 	// Notify Playback Thread to process in messages
 	if (!SetEvent(pHandle->hEvents[WA_EVENT_MESSAGE]))
 		return false;
+
 
 	// Wait a Playback Thread Response (TODO: Use a Timeout value here??)
 	dwResult = WaitForSingleObject(pHandle->hEvents[WA_EVENT_REPLY], INFINITE);
@@ -104,12 +105,12 @@ WinAudio_Handle* WinAudio_New(int32_t nOutput, int32_t* pnErrorCode)
 		return NULL;
 	}		
 
-
+	
 	// Create Playback Thread
 	pNewInstance->hPlaybackHandle = CreateThread(NULL, 0, PlayBack_Thread_Proc, pNewInstance->hEvents, 0, &pNewInstance->dwThreadId);
-
+	
 	// Wait For Thread Response
-	dwResult = WaitForSingleObject(pNewInstance->hEvents[WA_EVENT_REPLY], 2000);
+	dwResult = WaitForSingleObject(pNewInstance->hEvents[WA_EVENT_REPLY], 4000);
 
 	if (dwResult != WAIT_OBJECT_0)
 	{
@@ -124,12 +125,13 @@ WinAudio_Handle* WinAudio_New(int32_t nOutput, int32_t* pnErrorCode)
 
 		free(pNewInstance);
 
-		pNewInstance = NULL;
+		pNewInstance = NULL;		
 
 		(*pnErrorCode) = WINAUDIO_PBTHREADCREATIONFAIL;
 		return NULL;
 	}
 
+	
 	// Notify Choosed Output mode
 	if (!WinAudio_Post(pNewInstance, WA_MSG_SET_OUTPUT, pNewInstance->nOutput, 0))
 	{

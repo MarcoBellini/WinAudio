@@ -10,6 +10,7 @@
 #define WINAUDIOAPI __declspec(dllimport)
 #endif
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +42,7 @@ typedef struct WinAudio_Handle_Struct WinAudio_Handle;
 /// </summary>
 /// <param name="nOutput">Wasapi=0; DirectSound=1</param>
 /// <returns>A valid handle or NULL on Fail</returns>
-WINAUDIOAPI WinAudio_Handle *WinAudio_New(int32_t nOutput, int32_t *pnErrorCode);
+WINAUDIOAPI WinAudio_Handle  *WinAudio_New(int32_t nOutput, int32_t *pnErrorCode);
 
 /// <summary>
 /// Close Current WINAUDIO Handle
@@ -63,7 +64,7 @@ WINAUDIOAPI int32_t WinAudio_OpenFile(WinAudio_Handle* pHandle, const WINAUDIO_S
 /// </summary>
 /// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
 /// <returns>Return WINAUDIO_OK on success, otherwise error code</returns>
-WINAUDIOAPI int32_t WinAudio_CloseFile(WinAudio_Handle* pHandle);
+WINAUDIOAPI int32_t  WinAudio_CloseFile(WinAudio_Handle* pHandle);
 
 
 /// <summary>
@@ -183,6 +184,36 @@ WINAUDIOAPI int32_t WinAudio_Get_Volume(WinAudio_Handle* pHandle, uint8_t* pValu
 /// <param name="uValue">An unsigned byte value</param>
 /// <returns></returns>
 WINAUDIOAPI int32_t WinAudio_Set_Volume(WinAudio_Handle* pHandle, uint8_t uValue);
+
+
+// Opaque Struct
+struct tagWA_FFT;
+typedef struct tagWA_FFT WA_FFT;
+
+/// <summary>
+/// Init FFT Module
+/// </summary>
+/// <param name="uInSamples">Input Array Size</param>
+/// <param name="uOutSamples">Output Array Size (Power of 2) see WINAUDIO_FFT_SIZE enum</param>
+/// <returns>Return NULL on fail oterwise a valid handle value</returns>
+WINAUDIOAPI WA_FFT* WinAudio_FFT_Init(int32_t nInSamples, int32_t nOutSamples);
+
+/// <summary>
+/// Destroy FFT Instance
+/// </summary>
+/// <param name="pHandle">Valid Handle Value</param>
+WINAUDIOAPI void WinAudio_FFT_Destroy(WA_FFT* pHandle);
+
+/// <summary>
+/// Calculate FFT of input array
+/// </summary>
+/// <param name="pHandle">Valid Handle Orbitainded from WinAudio_FFT_Init function</param>
+/// <param name="InSamples">Float Array of input samples</param>
+/// <param name="OutSamples">Computed FFT Array</param>
+/// <param name="bEqualize">Increase High Frequencies if set to 1</param>
+WINAUDIOAPI void WinAudio_FFT_TimeToFrequencyDomain(WA_FFT* pHandle, float* InSamples, float* OutSamples, int32_t bEqualize);
+
+
 
 #ifdef __cplusplus
 } // END extern "C"

@@ -6,7 +6,7 @@
 bool CircleBuffer_Create(BUFFER_HANDLE pHandle, uint32_t uBufferSize);
 void CircleBuffer_Destroy(BUFFER_HANDLE pHandle);
 void CircleBuffer_Reset(BUFFER_HANDLE pHandle);
-bool CircleBuffer_Write(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uBufferLen);
+bool CircleBuffer_Write(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uBufferLen,bool bForceOverWrite);
 bool CircleBuffer_Read(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uBufferLen);
 bool CircleBuffer_ReadFrom(BUFFER_HANDLE pHandle, int8_t* pByteBuffer, uint32_t uStartPosition, uint32_t uBufferLen);
 bool CircleBuffer_FreeSpace(BUFFER_HANDLE pHandle, uint32_t* puFreeSpace);

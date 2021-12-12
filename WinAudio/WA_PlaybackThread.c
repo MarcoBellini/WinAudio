@@ -23,7 +23,7 @@ DWORD WINAPI PlayBack_Thread_Proc(_In_ LPVOID lpParameter)
 	bool bContinueLoop = true;
 	PbThreadData PbEngineData;
 
-	
+		
 	// Clear Instance Memory
 	ZeroMemory(&PbEngineData, sizeof(PbThreadData));
 
@@ -35,11 +35,16 @@ DWORD WINAPI PlayBack_Thread_Proc(_In_ LPVOID lpParameter)
 		return EXIT_FAILURE;
 
 	// Initialize Inputs, Output and CircleBuffer
-	if (!WA_Process_InitInOut(&PbEngineData))
-		return EXIT_FAILURE;
+	if (!WA_Process_InitInOut(&PbEngineData))		
+		return EXIT_FAILURE;	
 
 	// Store a Handle To Output Notification Event
 	PbEngineData.hOutputEvent = hEvents[WA_EVENT_OUTPUT];
+
+	// Force a first loop to create Message Queue
+	// This is needed to allow PostThreadMessage to work
+	// correctly
+	WA_Process_Messages(&PbEngineData);
 
 	// Notify Main Thread for Succesful creation
 	SetEvent(hEvents[WA_EVENT_REPLY]);
@@ -192,6 +197,7 @@ static bool WA_Process_InitInOut(PbThreadData* pEngine)
 	if (!CircleBuffer_Initialize(&pEngine->Circle))
 		return false;
 
+	
 	return true;
 }
 
