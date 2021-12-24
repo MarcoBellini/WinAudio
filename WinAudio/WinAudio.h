@@ -185,6 +185,22 @@ WINAUDIOAPI int32_t WinAudio_Get_Volume(WinAudio_Handle* pHandle, uint8_t* pValu
 /// <returns></returns>
 WINAUDIOAPI int32_t WinAudio_Set_Volume(WinAudio_Handle* pHandle, uint8_t uValue);
 
+// Define End Of Stream Message 
+// It is defined in WA_Macros.h
+#ifndef WA_CALLBACK_ENDOFSTREAM
+#define WA_CALLBACK_ENDOFSTREAM WA_MSG_END_OF_STREAM
+#endif
+
+/// <summary>
+/// Set a Window Handle to Callback End Of Stream Message
+/// Worker Thread uses PostMessage to notify this event
+/// Use WA_CALLBACK_ENDOFSTREAM message to catch end of stream event
+/// </summary>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="hWindow">HWND Value of the window where process Messages, or NULL to detach window</param>
+/// <returns>WINAUDIO_OK on success, otherwise error code</returns>
+WINAUDIOAPI int32_t WinAudio_Set_Callback_Handle(WinAudio_Handle* pHandle, void* hWindow);
+
 
 // Opaque Struct
 struct tagWA_FFT;

@@ -41,6 +41,8 @@ DWORD WINAPI PlayBack_Thread_Proc(_In_ LPVOID lpParameter)
 	// Store a Handle To Output Notification Event
 	PbEngineData.hOutputEvent = hEvents[WA_EVENT_OUTPUT];
 
+	PbEngineData.hMainWindow = NULL;
+
 	// Force a first loop to create Message Queue
 	// This is needed to allow PostThreadMessage to work
 	// correctly
@@ -165,6 +167,9 @@ static void WA_Process_Messages(PbThreadData* pEngine)
 		case WA_MSG_SET_OUTPUT:
 			WA_Msg_Set_Output(pEngine, msg.wParam);
 			break;
+		case WA_MSG_SET_WND_HANDLE:
+			(*pErrorCode) = WA_Msg_Set_Wnd_Handle(pEngine, (HWND)msg.wParam);
+			break;
 		}
 
 	}
@@ -182,6 +187,14 @@ static void WA_Process_Write_Output(PbThreadData* pEngine)
 	else
 	{
 		WA_Msg_Stop(pEngine);
+
+		// If we have a valid window handle notify to the main window
+		// the "End Of Stream" Event
+		if (pEngine->hMainWindow)
+		{
+			PostMessage(pEngine->hMainWindow, WA_MSG_END_OF_STREAM, 0, 0);
+		}
+
 	}
 		
 }

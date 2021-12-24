@@ -19,6 +19,7 @@ int32_t WA_Msg_Get_Position(PbThreadData* pEngine, uint64_t *pPosition);
 int32_t WA_Msg_Set_Position(PbThreadData* pEngine, uint64_t* pPosition);
 int32_t WA_Msg_Get_Duration(PbThreadData* pEngine, uint64_t* pDuration);
 int32_t WA_Msg_Get_Buffer(PbThreadData* pEngine, int8_t* pBuffer, uint32_t nDataToRead);
+int32_t WA_Msg_Set_Wnd_Handle(PbThreadData* pEngine, HWND hWindow);
 void WA_Msg_Set_Output(PbThreadData* pEngine, int32_t nOutput);
 
 

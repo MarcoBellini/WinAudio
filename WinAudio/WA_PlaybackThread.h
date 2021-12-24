@@ -36,6 +36,9 @@ typedef struct TagPbThreadData
 	// Store current file path
 	WINAUDIO_STR pFilePath[MAX_PATH];
 
+	// Store Window Handle to manage "End Of Stream" Message
+	HWND hMainWindow;
+
 } PbThreadData;
 #endif
 

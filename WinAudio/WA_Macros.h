@@ -66,6 +66,10 @@ typedef  char WINAUDIO_STR;
 #define WA_MSG_GET_CHANNELS			(WM_APP + 15)
 #define WA_MSG_GET_BITSPERSAMPLE	(WM_APP + 16)
 #define WA_MSG_SET_OUTPUT			(WM_APP + 17)
+#define WA_MSG_SET_WND_HANDLE		(WM_APP + 18)
+
+// Callback Messages
+#define WA_MSG_END_OF_STREAM		(WM_APP + 30)
 
 
 

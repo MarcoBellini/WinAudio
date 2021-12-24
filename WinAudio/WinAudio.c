@@ -1,7 +1,7 @@
 
 #include "pch.h"
-#include "WinAudio.h"
 #include "WA_Macros.h"
+#include "WinAudio.h"
 #include "WA_PlaybackThread.h"
 
 
@@ -412,6 +412,19 @@ int32_t WinAudio_Set_Volume(WinAudio_Handle* pHandle, uint8_t pValue)
 		return WINAUDIO_BADPTR;
 
 	if (!WinAudio_Post(pHandle, WA_MSG_SET_VOLUME, (WPARAM)pValue, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_Set_Callback_Handle(WinAudio_Handle* pHandle, void* hWindow)
+{
+	int32_t nErrorCode = WINAUDIO_REQUESTFAIL;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_SET_WND_HANDLE, (WPARAM)hWindow, (LPARAM)&nErrorCode))
 		return WINAUDIO_REQUESTFAIL;
 
 	return nErrorCode;

@@ -413,6 +413,25 @@ int32_t WA_Msg_Get_Buffer(PbThreadData* pEngine, int8_t* pBuffer, uint32_t nData
 	return WINAUDIO_OK;
 }
 
+int32_t WA_Msg_Set_Wnd_Handle(PbThreadData* pEngine, HWND hWindow)
+{
+	// Detach Window
+	if (hWindow == NULL)
+	{
+		pEngine->hMainWindow = NULL;
+		return WINAUDIO_OK;
+	}
+
+	// Check if we have a valid window
+	if (IsWindow(hWindow) == FALSE)
+		return WINAUDIO_INVALIDWINDOW;
+
+	// Associate Window Handle
+	pEngine->hMainWindow = hWindow;
+
+	return WINAUDIO_OK;
+}
+
 
 void WA_Msg_Set_Output(PbThreadData* pEngine, int32_t nOutput)
 {
