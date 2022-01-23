@@ -5,6 +5,8 @@
 #include "WA_Input.h"
 #include "WA_Output.h"
 #include "WA_CircleBuffer.h"
+#include "WA_Biquad.h"
+#include "WA_Audio_Boost.h"
 #include "WA_PlaybackThread.h"
 #include "WA_Output_Writer.h"
 #include "WA_Msg_Processor.h"
@@ -111,6 +113,22 @@ int32_t WA_Msg_Play(PbThreadData* pEngine)
 	_ASSERT(uMaxOutputMs > 0);
 	uMaxOutputBytes = (uint32_t) WA_Msg_MsToBytes(pEngine, uMaxOutputMs);
 	pCircle->CircleBuffer_Create(pCircle, uMaxOutputBytes);
+
+	// Update Biquad Filters Samplerate
+	if (pEngine->nBiquadCount > 0)
+	{
+		for (uint32_t i = 0; i < pEngine->nBiquadCount; i++)
+		{
+			WA_Biquad_Set_Samplerate(&pEngine->BiquadArray[i], (float)pEngine->uSamplerate);
+			WA_Biquad_Update_Coeff(&pEngine->BiquadArray[i]);
+		}
+	}
+
+	// Update Audio Boost
+	if (pEngine->bAudioBoostEnabled)
+	{
+		WA_Audio_Boost_Update(pEngine->AudioBoost, pEngine->uAvgBytesPerSec);
+	}
 
 	// Write Data to Output before play
 	WA_Output_FeedWithData(pEngine);
@@ -430,6 +448,165 @@ int32_t WA_Msg_Set_Wnd_Handle(PbThreadData* pEngine, HWND hWindow)
 	pEngine->hMainWindow = hWindow;
 
 	return WINAUDIO_OK;
+}
+
+
+int32_t WA_Msg_Biquad_Init(PbThreadData* pEngine, uint32_t uFiltersCount)
+{
+	if ((uFiltersCount == 0) || (uFiltersCount > WA_DSP_MAX_BIQUAD))
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	pEngine->BiquadArray = (WA_Biquad*)malloc(sizeof(WA_Biquad) * uFiltersCount);
+
+	if (!pEngine->BiquadArray)
+		return WINAUDIO_BADPTR;
+
+	ZeroMemory(pEngine->BiquadArray, sizeof(WA_Biquad) * uFiltersCount);
+
+	pEngine->nBiquadCount = uFiltersCount;
+
+	return WINAUDIO_OK;
+
+}
+
+int32_t WA_Msg_Biquad_Close(PbThreadData* pEngine)
+{
+	if (pEngine->nBiquadCount == 0)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (!pEngine->BiquadArray)
+		return WINAUDIO_BADPTR;
+
+	free(pEngine->BiquadArray);
+	pEngine->BiquadArray = NULL;
+
+	pEngine->nBiquadCount = 0;
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Biquad_Set_Filter(PbThreadData* pEngine, uint32_t uFilterIndex, enum BIQUAD_FILTER Filter)
+{
+	if (pEngine->nBiquadCount == 0)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (uFilterIndex > pEngine->nBiquadCount)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (!pEngine->BiquadArray)
+		return WINAUDIO_BADPTR;
+
+	WA_Biquad_Set_Filter(&pEngine->BiquadArray[uFilterIndex], Filter);
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Biquad_Set_Frequency(PbThreadData* pEngine, uint32_t uFilterIndex, float fFrequency)
+{
+	if (pEngine->nBiquadCount == 0)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if(fFrequency <= 1.0f)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (uFilterIndex > pEngine->nBiquadCount)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (!pEngine->BiquadArray)
+		return WINAUDIO_BADPTR;
+
+	WA_Biquad_Set_Frequency(&pEngine->BiquadArray[uFilterIndex], fFrequency);
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Biquad_Set_Gain(PbThreadData* pEngine, uint32_t uFilterIndex, float fGain)
+{
+	if (pEngine->nBiquadCount == 0)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (fGain < 0.0f)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (uFilterIndex > pEngine->nBiquadCount)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (!pEngine->BiquadArray)
+		return WINAUDIO_BADPTR;
+
+	WA_Biquad_Set_Gain(&pEngine->BiquadArray[uFilterIndex], fGain);
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Biquad_Set_Q(PbThreadData* pEngine, uint32_t uFilterIndex, float fQ)
+{
+	if (pEngine->nBiquadCount == 0)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (fQ <= 0.0f)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if(uFilterIndex > pEngine->nBiquadCount)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (!pEngine->BiquadArray)
+		return WINAUDIO_BADPTR;
+
+	WA_Biquad_Set_Q(&pEngine->BiquadArray[uFilterIndex], fQ);
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Biquad_Update_Coeff(PbThreadData* pEngine, uint32_t uFilterIndex)
+{
+	if (pEngine->nBiquadCount == 0)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (uFilterIndex > pEngine->nBiquadCount)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (!pEngine->BiquadArray)
+		return WINAUDIO_BADPTR;
+
+	WA_Biquad_Update_Coeff(&pEngine->BiquadArray[uFilterIndex]);
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Audio_Boost_Init(PbThreadData* pEngine, float fMaxPeakLevel)
+{ 
+	if ((fMaxPeakLevel < 0.0f) || (fMaxPeakLevel > 1.0f))
+		return WINAUDIO_BOOST_PARAM_ERROR;
+
+	pEngine->AudioBoost = WA_Audio_Boost_Init(fMaxPeakLevel);
+
+	if(!pEngine->AudioBoost)
+		return WINAUDIO_BADPTR;
+
+	return WINAUDIO_OK;
+
+}
+
+int32_t WA_Msg_Audio_Boost_Close(PbThreadData* pEngine)
+{
+	if (!pEngine->AudioBoost)
+		return WINAUDIO_BADPTR;
+
+	WA_Audio_Boost_Delete(pEngine->AudioBoost);
+
+	return WINAUDIO_OK;
+}
+
+int32_t WA_Msg_Audio_Boost_Set_Enable(PbThreadData* pEngine, bool bEnableFilter)
+{
+	if (!pEngine->AudioBoost)
+		return WINAUDIO_BADPTR;
+
+	pEngine->bAudioBoostEnabled = bEnableFilter;	
+
+	return WINAUDIO_OK;
+
 }
 
 

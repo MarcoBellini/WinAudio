@@ -67,10 +67,24 @@ typedef  char WINAUDIO_STR;
 #define WA_MSG_GET_BITSPERSAMPLE	(WM_APP + 16)
 #define WA_MSG_SET_OUTPUT			(WM_APP + 17)
 #define WA_MSG_SET_WND_HANDLE		(WM_APP + 18)
+#define WA_MSG_BIQUAD_INIT			(WM_APP + 19)
+#define WA_MSG_BIQUAD_CLOSE			(WM_APP + 20)
+#define WA_MSG_BIQUAD_SET_FILTER	(WM_APP + 21)
+#define WA_MSG_BIQUAD_SET_FREQ		(WM_APP + 22)
+#define WA_MSG_BIQUAD_SET_GAIN		(WM_APP + 23)
+#define WA_MSG_BIQUAD_SET_Q			(WM_APP + 24)
+#define WA_MSG_BIQUAD_UPDATE_COEFF	(WM_APP + 25)
+#define WA_MSG_BOOST_INIT			(WM_APP + 26)
+#define WA_MSG_BOOST_CLOSE			(WM_APP + 27)
+#define WA_MSG_BOOST_SET_ENABLE		(WM_APP + 28)
 
 // Callback Messages
 #define WA_MSG_END_OF_STREAM		(WM_APP + 30)
 
-
+// DSP Costants
+#define WA_AUDIO_BOOST_TARGET_PEAK		1.0f // min: 0.0f max: 1.0f
+#define WA_DSP_MAX_CHANNELS				2
+#define WA_DSP_MAX_BPS					16
+#define WA_DSP_MAX_BIQUAD				25
 
 #endif

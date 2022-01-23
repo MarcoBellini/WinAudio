@@ -4,8 +4,11 @@
 #include "WA_Input.h"
 #include "WA_Output.h"
 #include "WA_CircleBuffer.h"
+#include "WA_Biquad.h"
+#include "WA_Audio_Boost.h"
 #include "WA_PlaybackThread.h"
 #include "WA_Output_Writer.h"
+#include "WA_DSP_Processor.h"
 
 
 bool WA_Output_FeedWithData(PbThreadData* pEngine)
@@ -48,11 +51,15 @@ bool WA_Output_FeedWithData(PbThreadData* pEngine)
 	{
 		if (uBytesReaded > 0)
 		{
+
+			// Apply DSP (Don't check return here)
+			WA_DSP_Process(pEngine, pBuffer, uBytesReaded);
+
+			// Write Output and Circle Buffer
 			pOut->output_WriteToDevice(pOut, pBuffer, uBytesReaded);
-
-			// TODO: Process Here DSP + Write Circle Buffer for spectrum
-
 			pCircle->CircleBuffer_Write(pCircle, pBuffer, uBytesReaded, true);
+
+
 			pEngine->bEndOfStream = ((uDuration - uPosition) == 0) ? true : false;
 		}
 		else
