@@ -76,6 +76,9 @@ typedef struct tagOutWasapiInstance
 	uint32_t uCurrentLatency;
 	bool bPendingStreamSwitch;
 
+	// Store High Resolution Performance Counter
+	LARGE_INTEGER uPCFrequency;
+
 } OutWasapiInstance;
 
 
@@ -438,6 +441,11 @@ bool OutWasapi_Initialize(WA_Output* pStreamOutput)
 	pWasapiInstance->uCurrentLatency = 0;
 	pWasapiInstance->ReferenceCounter = 0;
 
+	// Cache QPC Frequency (0 = High Resoluction Not Supported)
+	if (!QueryPerformanceFrequency(&pWasapiInstance->uPCFrequency))
+		pWasapiInstance->uPCFrequency.QuadPart = 0;
+
+
 	return true;
 }
 
@@ -656,8 +664,8 @@ bool OutWasapi_WriteToDevice(WA_Output* pHandle, int8_t* pByteBuffer, uint32_t u
 
 	if (pWasapiInstance->bDeviceIsOpen)
 	{
-
-		// TODO: Untested 
+		
+		// Perform Stream Switch
 		if (pWasapiInstance->bPendingStreamSwitch)
 		{
 			OutWasapi_PerformStreamSwitch(pHandle);
@@ -689,19 +697,12 @@ bool OutWasapi_WriteToDevice(WA_Output* pHandle, int8_t* pByteBuffer, uint32_t u
 						(float)pWasapiInstance->StreamWfx.Format.nAvgBytesPerSec *
 						1000);
 
-
+					// Start Playing (On End Of Stream Switch)
 					if (bPerformedStreamSwitch)
 					{
 						OutWasapi_DevicePlay(pHandle);
 					}
-
-					/*
-					if (pWasapiInstance->fWrittenTimeMs > 10000.0f)
-					{
-						float fTest = 0;
-						OutWasapi_GetPlayTime(pHandle, &fTest);
-					}
-					*/	
+	
 
 					// Success
 					return true;
@@ -802,7 +803,7 @@ bool OutWasapi_DeviceStop(WA_Output* pHandle)
 		if SUCCEEDED(hr)
 		{
 			pWasapiInstance->bWasapiIsPlaying = false;
-			// pWasapiInstance->fWrittenTimeMs = 0.0f;
+		
 			return true;
 		}
 	}
@@ -830,7 +831,7 @@ bool OutWasapi_GetPlayTime(WA_Output* pHandle, float* fPlayTimeMs)
 	UINT64 uDevicePosition;
 	UINT64 uDevicePositionQPC;
 	HRESULT hr;
-	LARGE_INTEGER qpFreq, qpCounter;
+	LARGE_INTEGER qpCounter;
 	UINT64 uCounterValue, uDelayValue;
 	float fDelayMs;
 
@@ -847,54 +848,37 @@ bool OutWasapi_GetPlayTime(WA_Output* pHandle, float* fPlayTimeMs)
 
 			if SUCCEEDED(hr)
 			{
-
-#if (0 == 0) 
-				if (QueryPerformanceFrequency(&qpFreq))
+				
+				if (pWasapiInstance->uPCFrequency.QuadPart > 0)
 				{
+					// Use High Resolution Performance Counter
 					if (QueryPerformanceCounter(&qpCounter))
 					{
-						lldiv_t result = lldiv(qpCounter.QuadPart, qpFreq.QuadPart);
-						uCounterValue = (result.quot * 10000000) + ((result.rem * 10000000) / qpFreq.QuadPart);
+						lldiv_t result = lldiv(qpCounter.QuadPart, pWasapiInstance->uPCFrequency.QuadPart);
+
+						uCounterValue = (result.quot * 10000000) + ((result.rem * 10000000) / pWasapiInstance->uPCFrequency.QuadPart);
 						uDelayValue = uCounterValue - uDevicePositionQPC;
 						fDelayMs = uDelayValue / 10000.0f;
 
 						(*fPlayTimeMs) = (float)(uDevicePosition) / (float)(uDeviceFrequency);
+						(*fPlayTimeMs) = (*fPlayTimeMs) * 1000.0f;
 						(*fPlayTimeMs) += fDelayMs;
+					}
+					else
+					{
+						(*fPlayTimeMs) = (float)(uDevicePosition) / (float)(uDeviceFrequency);
+
+						// Convert from Seconds to Milliseconds
 						(*fPlayTimeMs) = (*fPlayTimeMs) * 1000.0f;
 					}
 				}
 				else
 				{
-					
 					(*fPlayTimeMs) = (float)(uDevicePosition) / (float)(uDeviceFrequency);
 
 					// Convert from Seconds to Milliseconds
 					(*fPlayTimeMs) = (*fPlayTimeMs) * 1000.0f;
 				}
-
-
-
-#else
-				(*fPlayTimeMs) = (float)(uDevicePosition) / (float)(uDeviceFrequency);
-
-
-				// Convert from Seconds to Milliseconds
-				(*fPlayTimeMs) = (*fPlayTimeMs) * 1000.0f;
-
-				return true;
-#endif
-
-				
-				/*
-				QueryPerformanceFrequency(&qpFreq);
-				QueryPerformanceCounter(&qpCounter);
-
-				qpCounter.QuadPart *= 10000000;
-				qpCounter.QuadPart /= qpFreq.QuadPart;
-				qpResult.QuadPart = qpCounter.QuadPart - uDevicePositionQPC;
-				//qpResult.QuadPart /= 10000000;
-				*/
-
 
 
 				return true;

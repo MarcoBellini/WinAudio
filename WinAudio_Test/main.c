@@ -62,7 +62,7 @@ int main()
 				WinAudio_Biquad_Update_Coeff(pHandle, 1);
 			}
 
-			if (WinAudio_AudioBoost_Init(pHandle, 0.95f) == WINAUDIO_OK)
+			if (WinAudio_AudioBoost_Init(pHandle, 0.99f) == WINAUDIO_OK)
 			{
 				bBoostEnabled = true;
 				WinAudio_AudioBoost_Set_Enable(pHandle, 1);
