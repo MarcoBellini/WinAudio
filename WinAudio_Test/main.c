@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "..\WinAudio\WinAudio.h"
 #include <Windows.h>
+
+// Set to 1 to Enable DSP Test or 0 to Disable
+#define WINAUDIO_PLAYER_TEST_DSP 1
 
 // Private Members
 void Console_Print_Time_Formatted(uint64_t uPosition, uint64_t uDuration);
@@ -17,13 +21,18 @@ int main()
 	uint64_t uPosition, uDuration;
 	int8_t Buffer[256];
 
+#if (WINAUDIO_PLAYER_TEST_DSP)
+	bool bBiquadEnabled = false;
+	bool bBoostEnabled = false;
+#endif
+
 
 	pHandle = WinAudio_New(WINAUDIO_WASAPI, &nErrorCode);
 
 
 	if (pHandle)
 	{
-		wprintf(L"WinAudio: \033[42mOK\033[0m \n\n");
+		wprintf(L"WinAudio: OK \n\n");
 
 		wprintf(L"Write the path of file you want to open: \n");
 		wscanf_s(L"%s", pFilePath, 256);
@@ -32,6 +41,35 @@ int main()
 
 		if (nErrorCode == WINAUDIO_OK)
 		{	
+
+
+#if (WINAUDIO_PLAYER_TEST_DSP)
+
+			// Test Low Pass
+			if (WinAudio_Biquad_Init(pHandle, 2) == WINAUDIO_OK)
+			{
+				bBiquadEnabled = true;
+				WinAudio_Biquad_Set_Filter(pHandle, 0, WINAUDIO_LOWSHELF);
+				WinAudio_Biquad_Set_Frequency(pHandle, 0, 100.0f);
+				WinAudio_Biquad_Set_Gain(pHandle, 0, 2.0f);
+				WinAudio_Biquad_Set_Q(pHandle, 0, 0.8f);
+				WinAudio_Biquad_Update_Coeff(pHandle, 0);
+
+				WinAudio_Biquad_Set_Filter(pHandle, 1, WINAUDIO_HIGHSHELF);
+				WinAudio_Biquad_Set_Frequency(pHandle, 1, 1200.0f);
+				WinAudio_Biquad_Set_Gain(pHandle, 1, 1.0f);
+				WinAudio_Biquad_Set_Q(pHandle, 1, 0.8f);
+				WinAudio_Biquad_Update_Coeff(pHandle, 1);
+			}
+
+			if (WinAudio_AudioBoost_Init(pHandle, 0.99f) == WINAUDIO_OK)
+			{
+				bBoostEnabled = true;
+				WinAudio_AudioBoost_Set_Enable(pHandle, 1);
+			}
+#endif
+
+
 			// Play audio
 			WinAudio_Play(pHandle);
 
@@ -40,9 +78,9 @@ int main()
 			WinAudio_Get_Channels(pHandle, &uChannels);
 			WinAudio_Get_BitsPerSample(pHandle, &uBps);
 
-			wprintf(L"\033[44mSamplerate: \t %u\033[0m \n", uSamplerate);
-			wprintf(L"\033[45mChannels: \t %u\033[0m \n", uChannels);
-			wprintf(L"\033[46mBits x Sample: \t %u \033[0m \n", uBps);
+			wprintf(L"Samplerate: \t %u\n", uSamplerate);
+			wprintf(L"Channels: \t %u \n", uChannels);
+			wprintf(L"Bits x Sample: \t %u \n", uBps);
 
 
 			// Wait Until Output is Playing
@@ -56,10 +94,23 @@ int main()
 			}			
 
 			WinAudio_CloseFile(pHandle);
+
+
+
+#if (WINAUDIO_PLAYER_TEST_DSP)
+
+			if (bBiquadEnabled)
+				WinAudio_Biquad_Close(pHandle);
+
+			if(bBoostEnabled)
+				WinAudio_AudioBoost_Close(pHandle);
+#endif
+
+
 		}
 		else
 		{
-			wprintf(L"\033[41mFail to open the file!\033[0m \n");
+			wprintf(L"Fail to open the file!\n");
 		}
 
 		WinAudio_Delete(pHandle);

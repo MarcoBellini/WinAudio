@@ -3,7 +3,7 @@
 #define PLAYBACK_THREAD_H
 
 // Exclude From WinAudio.c
-#if defined(WA_OUTPUT_H) && defined(WA_INPUT_H) && defined(WA_CIRCLEBUFFER_H)
+#ifndef WINAUDIO_H
 typedef struct TagPbThreadData
 {
 	// Store Output Write Event(Event-Driven)
@@ -38,6 +38,14 @@ typedef struct TagPbThreadData
 
 	// Store Window Handle to manage "End Of Stream" Message
 	HWND hMainWindow;
+
+
+	// Store DSP Data
+	WA_Biquad* BiquadArray;
+	uint32_t nBiquadCount;
+
+	WA_Boost* AudioBoost;
+	bool bAudioBoostEnabled;
 
 } PbThreadData;
 #endif

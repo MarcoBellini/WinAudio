@@ -148,8 +148,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="WA_Audio_Boost.h" />
+    <ClInclude Include="WA_Biquad.h" />
     <ClInclude Include="WA_CircleBuffer.h" />
     <ClInclude Include="WA_Common_Enums.h" />
+    <ClInclude Include="WA_DSP_Processor.h" />
     <ClInclude Include="WA_Input.h" />
     <ClInclude Include="WA_Macros.h" />
     <ClInclude Include="WA_Msg_Processor.h" />
@@ -157,19 +160,23 @@
     <ClInclude Include="WA_Output_Writer.h" />
     <ClInclude Include="WA_PlaybackThread.h" />
     <ClInclude Include="WinAudio.h" />
+    <ClInclude Include="WA_PCM_Utility.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.c" />
+    <ClCompile Include="WA_Audio_Boost.c" />
+    <ClCompile Include="WA_Biquad.c" />
     <ClCompile Include="WA_CircleBuffer.c" />
+    <ClCompile Include="WA_DSP_Processor.c" />
     <ClCompile Include="WA_FFT.c" />
     <ClCompile Include="WA_Input_MFnd.c" />
     <ClCompile Include="WA_Input_Wav.c" />
     <ClCompile Include="WA_Msg_Processor.c" />
-    <ClCompile Include="WA_Output_DSound.c" />
     <ClCompile Include="WA_Output_Wasapi.c" />
     <ClCompile Include="WA_Output_Writer.c" />
     <ClCompile Include="WA_PlaybackThread.c" />
     <ClCompile Include="WinAudio.c" />
+    <ClCompile Include="WA_PCM_Utility.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -4,6 +4,8 @@
 #include "WA_Input.h"
 #include "WA_Output.h"
 #include "WA_CircleBuffer.h"
+#include "WA_Biquad.h"
+#include "WA_Audio_Boost.h"
 #include "WA_PlaybackThread.h"
 #include "WA_Msg_Processor.h"
 #include "WA_Output_Writer.h"
@@ -41,7 +43,6 @@ DWORD WINAPI PlayBack_Thread_Proc(_In_ LPVOID lpParameter)
 	// Store a Handle To Output Notification Event
 	PbEngineData.hOutputEvent = hEvents[WA_EVENT_OUTPUT];
 
-	PbEngineData.hMainWindow = NULL;
 
 	// Force a first loop to create Message Queue
 	// This is needed to allow PostThreadMessage to work
@@ -62,7 +63,7 @@ DWORD WINAPI PlayBack_Thread_Proc(_In_ LPVOID lpParameter)
 		{
 			// Write Output
 			WA_Process_Write_Output(&PbEngineData);
-			_RPTW0(_CRT_WARN, L"Write Output Event\n");
+			//_RPTW0(_CRT_WARN, L"Write Output Event\n");
 		}
 
 		if (dwEventsState[WA_EVENT_MESSAGE] == WAIT_OBJECT_0)
@@ -72,14 +73,14 @@ DWORD WINAPI PlayBack_Thread_Proc(_In_ LPVOID lpParameter)
 
 			// Notify To Main Thread We Handled The Message
 			SetEvent(hEvents[WA_EVENT_REPLY]);
-			_RPTW0(_CRT_WARN, L"Message Event \n");
+			//_RPTW0(_CRT_WARN, L"Message Event \n");
 		}
 
 		if (dwEventsState[WA_EVENT_DELETE] == WAIT_OBJECT_0)
 		{
 			// Exit Thread
 			bContinueLoop = false;
-			_RPTW0(_CRT_WARN, L"Delete Event \n");
+			//_RPTW0(_CRT_WARN, L"Delete Event \n");
 		}
 
 	} while (bContinueLoop);
@@ -169,6 +170,61 @@ static void WA_Process_Messages(PbThreadData* pEngine)
 			break;
 		case WA_MSG_SET_WND_HANDLE:
 			(*pErrorCode) = WA_Msg_Set_Wnd_Handle(pEngine, (HWND)msg.wParam);
+			break;
+		case WA_MSG_BIQUAD_INIT:
+			(*pErrorCode) = WA_Msg_Biquad_Init(pEngine, (uint32_t)msg.wParam);
+			break;
+		case WA_MSG_BIQUAD_CLOSE:
+			(*pErrorCode) = WA_Msg_Biquad_Close(pEngine);
+			break;
+		case WA_MSG_BIQUAD_SET_FILTER:
+		{
+			uint32_t uIndex = (*pErrorCode); // Store Index in lParam
+			(*pErrorCode) = WA_Msg_Biquad_Set_Filter(pEngine, uIndex, (enum BIQUAD_FILTER)msg.wParam);
+			break;
+		}
+		case WA_MSG_BIQUAD_SET_FREQ:
+		{
+			uint32_t uIndex = (*pErrorCode); // Store Index in lParam
+			float* fValue = (float*)msg.wParam;
+
+			(*pErrorCode) = WA_Msg_Biquad_Set_Frequency(pEngine, uIndex, (*fValue));
+			break;
+		}			
+		case WA_MSG_BIQUAD_SET_GAIN:
+		{
+			uint32_t uIndex = (*pErrorCode); // Store Index in lParam
+			float* fValue = (float*)msg.wParam;
+
+			(*pErrorCode) = WA_Msg_Biquad_Set_Gain(pEngine, uIndex, (*fValue));
+			break;
+		}
+		case WA_MSG_BIQUAD_SET_Q:
+		{
+			uint32_t uIndex = (*pErrorCode); // Store Index in lParam
+			float* fValue = (float*)msg.wParam;
+
+			(*pErrorCode) = WA_Msg_Biquad_Set_Q(pEngine, uIndex, (*fValue));
+			break;
+		}
+		case WA_MSG_BIQUAD_UPDATE_COEFF:
+		{
+			uint32_t uIndex = (*pErrorCode); // Store Index in lParam
+			(*pErrorCode) = WA_Msg_Biquad_Update_Coeff(pEngine, uIndex);
+			break;
+		}
+		case WA_MSG_BOOST_INIT:
+		{
+			float* fValue = (float*)msg.wParam;
+			(*pErrorCode) = WA_Msg_Audio_Boost_Init(pEngine, (*fValue));
+			break;
+		}
+
+		case WA_MSG_BOOST_CLOSE:
+			(*pErrorCode) = WA_Msg_Audio_Boost_Close(pEngine);
+			break;
+		case WA_MSG_BOOST_SET_ENABLE:
+			(*pErrorCode) = WA_Msg_Audio_Boost_Set_Enable(pEngine, (bool)msg.wParam);
 			break;
 		}
 

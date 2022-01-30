@@ -452,7 +452,7 @@ bool MediaFoundation_Read(WA_Input* pHandle, int8_t* pByteBuffer, uint32_t uByte
 			free(MFInstance->pRemainingData);
 			MFInstance->pRemainingData = NULL;
 
-			_RPTF1(_CRT_WARN, "(1) Pending data size: %u \n", uDataReaded);
+			//_RPTF1(_CRT_WARN, "(1) Pending data size: %u \n", uDataReaded);
 		}
 		else
 		{
@@ -467,7 +467,7 @@ bool MediaFoundation_Read(WA_Input* pHandle, int8_t* pByteBuffer, uint32_t uByte
 				MFInstance->pRemainingData + uDataReaded,
 				MFInstance->uRemainingDataLen);
 
-			_RPTF1(_CRT_WARN, "(2) Pending data size: %u \n", uDataReaded);
+			//_RPTF1(_CRT_WARN, "(2) Pending data size: %u \n", uDataReaded);
 		}
 
 
