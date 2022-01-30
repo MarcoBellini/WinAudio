@@ -172,7 +172,6 @@
     <ClCompile Include="WA_Input_MFnd.c" />
     <ClCompile Include="WA_Input_Wav.c" />
     <ClCompile Include="WA_Msg_Processor.c" />
-    <ClCompile Include="WA_Output_DSound.c" />
     <ClCompile Include="WA_Output_Wasapi.c" />
     <ClCompile Include="WA_Output_Writer.c" />
     <ClCompile Include="WA_PlaybackThread.c" />

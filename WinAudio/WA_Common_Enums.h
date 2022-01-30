@@ -32,7 +32,7 @@ enum WINAUDIO_ERRORS
 enum WINAUDIO_OUTPUT
 {
 	WINAUDIO_WASAPI			= 0,
-	WINAUDIO_DIRECTSOUND	= 1
+	WINAUDIO_RESERVED		= 1  // Reserved for Future Implementations
 };
 
 /// <summary>

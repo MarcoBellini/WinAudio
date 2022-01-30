@@ -80,9 +80,6 @@
     <ClCompile Include="WA_Output_Wasapi.c">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="WA_Output_DSound.c">
-      <Filter>File di origine</Filter>
-    </ClCompile>
     <ClCompile Include="WA_Msg_Processor.c">
       <Filter>File di origine</Filter>
     </ClCompile>

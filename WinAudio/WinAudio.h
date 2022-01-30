@@ -40,7 +40,7 @@ typedef struct WinAudio_Handle_Struct WinAudio_Handle;
 /// <summary>
 /// Create a new WINAUDIO Handle
 /// </summary>
-/// <param name="nOutput">Wasapi=0; DirectSound=1</param>
+/// <param name="nOutput">Wasapi=0;</param>
 /// <returns>A valid handle or NULL on Fail</returns>
 WINAUDIOAPI WinAudio_Handle  *WinAudio_New(int32_t nOutput, int32_t *pnErrorCode);
 

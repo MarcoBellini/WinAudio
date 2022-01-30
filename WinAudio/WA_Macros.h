@@ -36,8 +36,8 @@ typedef  char WINAUDIO_STR;
 
 // Output Specs
 #define WA_OUTPUT_WASAPI			0
-#define WA_OUTPUT_DSOUND			1
-#define WA_OUTPUT_MAX				(WA_OUTPUT_DSOUND + 1)
+#define WA_OUTPUT_RESERVED			1 // Reserved for future Implementations
+#define WA_OUTPUT_MAX				(WA_OUTPUT_RESERVED + 1)
 #define WA_OUTPUT_LEN_MS			600U
 #define WA_OUTPUT_LEN_MS_F			600.0f
 

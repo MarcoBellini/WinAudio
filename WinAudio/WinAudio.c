@@ -51,7 +51,7 @@ WinAudio_Handle* WinAudio_New(int32_t nOutput, int32_t* pnErrorCode)
 	DWORD dwResult;
 
 	// Check for a valid output number
-	if ((nOutput != WINAUDIO_WASAPI) && (nOutput != WINAUDIO_DIRECTSOUND))
+	if (nOutput != WINAUDIO_WASAPI) 
 	{
 		(*pnErrorCode) = WINAUDIO_INVALIDOUTPUT;
 		return NULL;

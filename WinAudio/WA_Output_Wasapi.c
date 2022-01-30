@@ -490,7 +490,7 @@ bool OutWasapi_CreateDevice(WA_Output* pHandle, uint32_t uSamplerate, uint16_t u
 	pWfx->Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
 	pWfx->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
 	pWfx->SubFormat = WASAPI_KSDATAFORMAT_SUBTYPE_PCM;
-	pWfx->dwChannelMask = (uChannels == 1) ? SPEAKER_FRONT_LEFT : (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT);
+	pWfx->dwChannelMask = (uChannels == 1) ? KSAUDIO_SPEAKER_MONO : KSAUDIO_SPEAKER_STEREO; // TODO: Provide More Channels Options
 	pWfx->Format.nSamplesPerSec = (DWORD)uSamplerate;
 	pWfx->Format.nChannels = (WORD)uChannels;
 	pWfx->Format.wBitsPerSample = (WORD)uBitsPerSample;

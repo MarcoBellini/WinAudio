@@ -95,7 +95,7 @@ int32_t WA_Msg_Play(PbThreadData* pEngine)
 		}
 
 		break;
-	case WA_OUTPUT_DSOUND:
+	case WA_OUTPUT_RESERVED:
 		// TODO: Init DSound
 		break;
 	}
@@ -180,7 +180,7 @@ int32_t WA_Msg_Stop(PbThreadData* pEngine)
 	case WA_OUTPUT_WASAPI:
 		OutWasapi_Deinitialize(&pEngine->OutputArray[pEngine->uActiveOutput]);
 		break;
-	case WA_OUTPUT_DSOUND:
+	case WA_OUTPUT_RESERVED:
 		// TODO: Deinit DSound
 		break;
 	}
@@ -409,13 +409,11 @@ int32_t WA_Msg_Get_Buffer(PbThreadData* pEngine, int8_t* pBuffer, uint32_t nData
 	}
 
 	// Calculate module
-	fPlayTimeMs = fmodf(fPlayTimeMs, WA_OUTPUT_LEN_MS_F);
-	fWriteTimeMs = fmodf(fWriteTimeMs, WA_OUTPUT_LEN_MS_F);
+	fPlayTimeMs = fmodf(fPlayTimeMs, WA_OUTPUT_LEN_MS_F);	
 
 	// Round to a nearest int
 	fPlayTimeMs = rintf(fPlayTimeMs);
 
-	//_RPTF1(_CRT_WARN, "PlayTime: %f - Write Time: %f \n", fPlayTimeMs, fWriteTimeMs);
 
 	// Cast to an unsigned int value and convert to a byte position
 	uPositionInBytes = (pEngine->uAvgBytesPerSec * (uint32_t)fPlayTimeMs) / 1000;
