@@ -522,7 +522,7 @@ int32_t WinAudio_Biquad_Update_Coeff(WinAudio_Handle* pHandle, uint32_t uFilterI
 
 }
 
-WINAUDIOAPI int32_t WinAudio_AudioBoost_Init(WinAudio_Handle* pHandle, float fMaxPeakLevel)
+int32_t WinAudio_AudioBoost_Init(WinAudio_Handle* pHandle, float fMaxPeakLevel)
 {
 	int32_t nErrorCode = WINAUDIO_REQUESTFAIL;
 
@@ -536,7 +536,7 @@ WINAUDIOAPI int32_t WinAudio_AudioBoost_Init(WinAudio_Handle* pHandle, float fMa
 }
 
 
-WINAUDIOAPI int32_t WinAudio_AudioBoost_Close(WinAudio_Handle* pHandle)
+int32_t WinAudio_AudioBoost_Close(WinAudio_Handle* pHandle)
 {
 	int32_t nErrorCode = WINAUDIO_REQUESTFAIL;
 
@@ -549,7 +549,7 @@ WINAUDIOAPI int32_t WinAudio_AudioBoost_Close(WinAudio_Handle* pHandle)
 	return nErrorCode;
 }
 
-WINAUDIOAPI int32_t WinAudio_AudioBoost_Set_Enable(WinAudio_Handle* pHandle, int bEnableFilter)
+int32_t WinAudio_AudioBoost_Set_Enable(WinAudio_Handle* pHandle, int bEnableFilter)
 {
 	int32_t nErrorCode = WINAUDIO_REQUESTFAIL;
 
@@ -557,6 +557,19 @@ WINAUDIOAPI int32_t WinAudio_AudioBoost_Set_Enable(WinAudio_Handle* pHandle, int
 		return WINAUDIO_BADPTR;
 
 	if (!WinAudio_Post(pHandle, WA_MSG_BOOST_SET_ENABLE, (WPARAM)bEnableFilter, (LPARAM)&nErrorCode))
+		return WINAUDIO_REQUESTFAIL;
+
+	return nErrorCode;
+}
+
+int32_t WinAudio_AudioBoost_Set_Ambience(WinAudio_Handle* pHandle, int bEnableFilter)
+{
+	int32_t nErrorCode = WINAUDIO_REQUESTFAIL;
+
+	if (!pHandle)
+		return WINAUDIO_BADPTR;
+
+	if (!WinAudio_Post(pHandle, WA_MSG_BOOST_SET_AMBIENCE, (WPARAM)bEnableFilter, (LPARAM)&nErrorCode))
 		return WINAUDIO_REQUESTFAIL;
 
 	return nErrorCode;

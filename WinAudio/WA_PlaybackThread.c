@@ -166,7 +166,7 @@ static void WA_Process_Messages(PbThreadData* pEngine)
 			(*pErrorCode) = WA_Msg_Get_BitsPerSample(pEngine, (uint16_t*)msg.wParam);
 			break;
 		case WA_MSG_SET_OUTPUT:
-			WA_Msg_Set_Output(pEngine, msg.wParam);
+			WA_Msg_Set_Output(pEngine, (int32_t) msg.wParam);
 			break;
 		case WA_MSG_SET_WND_HANDLE:
 			(*pErrorCode) = WA_Msg_Set_Wnd_Handle(pEngine, (HWND)msg.wParam);
@@ -225,6 +225,9 @@ static void WA_Process_Messages(PbThreadData* pEngine)
 			break;
 		case WA_MSG_BOOST_SET_ENABLE:
 			(*pErrorCode) = WA_Msg_Audio_Boost_Set_Enable(pEngine, (bool)msg.wParam);
+			break;
+		case WA_MSG_BOOST_SET_AMBIENCE:
+			(*pErrorCode) = WA_Msg_Audio_Boost_Set_Ambience(pEngine, (bool)msg.wParam);
 			break;
 		}
 

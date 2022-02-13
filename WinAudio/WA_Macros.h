@@ -77,6 +77,7 @@ typedef  char WINAUDIO_STR;
 #define WA_MSG_BOOST_INIT			(WM_APP + 26)
 #define WA_MSG_BOOST_CLOSE			(WM_APP + 27)
 #define WA_MSG_BOOST_SET_ENABLE		(WM_APP + 28)
+#define WA_MSG_BOOST_SET_AMBIENCE	(WM_APP + 29)
 
 // Callback Messages
 #define WA_MSG_END_OF_STREAM		(WM_APP + 30)
