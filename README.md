@@ -34,7 +34,7 @@ int main()
 	// Try to Play
 	nErrorCode = WinAudio_Play(pHandle);
   
-  // Remember to Check for Errors...
+  	// Remember to Check for Errors...
 
 	// Close WinAudio Instance
 	WinAudio_Delete(pHandle);
