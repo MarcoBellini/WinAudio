@@ -2,6 +2,8 @@
 #ifndef WA_REVERB_H
 #define WA_REVERB_H
 
+// Based on Verblib https://github.com/blastbay/verblib
+
 /* Reverb Library
 * Verblib version 0.4 - 2021-01-23
 *

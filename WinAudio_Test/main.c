@@ -45,7 +45,7 @@ int main()
 
 #if (WINAUDIO_PLAYER_TEST_DSP)
 
-			// Test Low Pass
+			// Test Biquads
 			if (WinAudio_Biquad_Init(pHandle, 2) == WINAUDIO_OK)
 			{
 				bBiquadEnabled = true;
@@ -66,6 +66,7 @@ int main()
 			{
 				bBoostEnabled = true;
 				WinAudio_AudioBoost_Set_Enable(pHandle, 1);
+				WinAudio_AudioBoost_Set_Ambience(pHandle, 1);
 			}
 #endif
 
