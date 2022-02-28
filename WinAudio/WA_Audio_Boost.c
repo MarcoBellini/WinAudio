@@ -1,11 +1,18 @@
 
 #include "pch.h"
 #include "WA_Audio_Boost.h"
+
+#define VERBLIB_IMPLEMENTATION
+#include "WA_Reverb.h"
+
 #include <math.h>
 
 #define WA_SILENCE_VALUE					0.000079433f // -62DB
 #define WA_MAX_PEAK_DISTANCE_IN_BYTES		64000		 // 64 KB
 #define WA_MAX_GAIN_NOT_TO_FADE				0.98000f
+
+// https://stackoverflow.com/questions/2445756/how-can-i-calculate-audio-db-level
+
 
 struct tagWA_Boost
 {	
@@ -29,6 +36,11 @@ struct tagWA_Boost
 
 	float fMuliplierFactor;
 	float fTargetMuliplierFactor;
+
+	// Ambience
+	verblib Reverb;
+	bool bAmbienceEnabled;
+	bool bAmbienceSupported;
 
 };
 
@@ -297,6 +309,7 @@ WA_Boost* WA_Audio_Boost_Init(float fMaxPeak)
 	pHandle->fTargetMuliplierFactor = 1.0f;
 	pHandle->uElapsedAttackBytes = 0;
 	pHandle->uElapsedReleaseBytes = 0;
+	pHandle->bAmbienceEnabled = false;
 
 	return pHandle;
 }
@@ -310,7 +323,7 @@ void WA_Audio_Boost_Delete(WA_Boost* pHandle)
 	}
 }
 
-void WA_Audio_Boost_Update(WA_Boost* pHandle, uint32_t uAvgBytesPerSec)
+void WA_Audio_Boost_Update(WA_Boost* pHandle, uint32_t uAvgBytesPerSec, uint32_t uSamplerate, uint16_t uChannels)
 {
 	// Reset Values
 	pHandle->fMuliplierFactor = 1.0f;
@@ -329,11 +342,32 @@ void WA_Audio_Boost_Update(WA_Boost* pHandle, uint32_t uAvgBytesPerSec)
 	pHandle->uAvgBytesPerSec = uAvgBytesPerSec;
 	pHandle->uAttackBytes = WA_Audio_Boost_MsToBytes(pHandle, pHandle->fAttackTimeMs);
 	pHandle->uReleaseBytes = WA_Audio_Boost_MsToBytes(pHandle, pHandle->fReleaseTimeMs);
+
+	if (pHandle->bAmbienceEnabled)
+	{
+		// Update Reverb
+		pHandle->bAmbienceSupported = verblib_initialize(&pHandle->Reverb, (unsigned long)uSamplerate, (unsigned int)uChannels);
+
+		if (pHandle->bAmbienceSupported)
+		{
+			// TODO: Create Editable Parameters
+			verblib_set_room_size(&pHandle->Reverb, 0.50f);
+			verblib_set_damping(&pHandle->Reverb, 0.30f);
+			verblib_set_wet(&pHandle->Reverb, 0.30f);
+			verblib_set_dry(&pHandle->Reverb, 0.95f);
+			verblib_set_width(&pHandle->Reverb, 0.50f);
+		}
+	}
+
 }
 
 
 void WA_Audio_Boost_Process_Stereo(WA_Boost* pHandle, float* pLeftBuffer, float* pRightBuffer, uint32_t nBufferCount)
 {
+	// Apply Reverb and after this Apply Boost
+	if ((pHandle->bAmbienceEnabled) && (pHandle->bAmbienceSupported))
+		verblib_process_stereo(&pHandle->Reverb, pLeftBuffer, pRightBuffer, (unsigned long)nBufferCount);
+
 	// Find The Peak of Current Sample
 	WA_Audio_Boost_Find_Peak_Stereo(pHandle, pLeftBuffer, pRightBuffer, nBufferCount);
 
@@ -352,11 +386,17 @@ void WA_Audio_Boost_Process_Stereo(WA_Boost* pHandle, float* pLeftBuffer, float*
 		pHandle->uPreviousPeakPosition = pHandle->uCurrentPeakPosition;
 		pHandle->fPreviousPeakValue = pHandle->fCurrentPeakValue;	
 	}
+
+
 	
 }
 
 void WA_Audio_Boost_Process_Mono(WA_Boost* pHandle, float* pMonoBuffer, uint32_t nBufferCount)
 {
+	// Apply Reverb and after this Apply Boost
+	if ((pHandle->bAmbienceEnabled) && (pHandle->bAmbienceSupported))
+		verblib_process_mono(&pHandle->Reverb, pMonoBuffer, (unsigned long)nBufferCount);
+
 	// Find The Peak of Current Sample
 	WA_Audio_Boost_Find_Peak_Mono(pHandle, pMonoBuffer, nBufferCount);
 
@@ -378,15 +418,15 @@ void WA_Audio_Boost_Process_Mono(WA_Boost* pHandle, float* pMonoBuffer, uint32_t
 
 }
 
+void WA_Audio_Boost_Set_Ambience_Enable(WA_Boost* pHandle, bool bAmbienceIsEnabled)
+{
+	pHandle->bAmbienceEnabled = bAmbienceIsEnabled;
+}
 
 
 
 
-// https://stackoverflow.com/questions/2445756/how-can-i-calculate-audio-db-level
-// Find Multiply Factor to Get Current Gain Value (in DB)
-// Use a Max Multuply factor value
-// Find Peak and Averange Value (in DB) Value and Position
-// Increase Gain Linear (in DB)
-// Decrease Gain Logaritmic (in DB)
+
+
 
 

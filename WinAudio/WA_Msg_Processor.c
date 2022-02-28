@@ -127,7 +127,7 @@ int32_t WA_Msg_Play(PbThreadData* pEngine)
 	// Update Audio Boost
 	if (pEngine->bAudioBoostEnabled)
 	{
-		WA_Audio_Boost_Update(pEngine->AudioBoost, pEngine->uAvgBytesPerSec);
+		WA_Audio_Boost_Update(pEngine->AudioBoost, pEngine->uAvgBytesPerSec, pEngine->uSamplerate, pEngine->uChannels);
 	}
 
 	// Write Data to Output before play
@@ -602,6 +602,17 @@ int32_t WA_Msg_Audio_Boost_Set_Enable(PbThreadData* pEngine, bool bEnableFilter)
 		return WINAUDIO_BADPTR;
 
 	pEngine->bAudioBoostEnabled = bEnableFilter;	
+
+	return WINAUDIO_OK;
+
+}
+
+int32_t WA_Msg_Audio_Boost_Set_Ambience(PbThreadData* pEngine, bool bEnableFilter)
+{
+	if (!pEngine->AudioBoost)
+		return WINAUDIO_BADPTR;
+
+	WA_Audio_Boost_Set_Ambience_Enable(pEngine->AudioBoost, bEnableFilter);
 
 	return WINAUDIO_OK;
 

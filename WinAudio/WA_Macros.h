@@ -26,7 +26,7 @@ typedef  char WINAUDIO_STR;
 #define WA_EVENT_MESSAGE			2
 #define WA_EVENT_OUTPUT				3
 #define WA_EVENT_MAX				(WA_EVENT_OUTPUT + 1)
-#define WA_EVENT_TOUT				20 // ms
+#define WA_EVENT_TOUT				10 // ms
 
 
 // Seek Origin
@@ -38,8 +38,8 @@ typedef  char WINAUDIO_STR;
 #define WA_OUTPUT_WASAPI			0
 #define WA_OUTPUT_RESERVED			1 // Reserved for future Implementations
 #define WA_OUTPUT_MAX				(WA_OUTPUT_RESERVED + 1)
-#define WA_OUTPUT_LEN_MS			600U
-#define WA_OUTPUT_LEN_MS_F			600.0f
+#define WA_OUTPUT_LEN_MS			300U
+#define WA_OUTPUT_LEN_MS_F			300.0f
 
 // Inputs Specs
 #define WA_INPUT_WAV				0
@@ -77,6 +77,7 @@ typedef  char WINAUDIO_STR;
 #define WA_MSG_BOOST_INIT			(WM_APP + 26)
 #define WA_MSG_BOOST_CLOSE			(WM_APP + 27)
 #define WA_MSG_BOOST_SET_ENABLE		(WM_APP + 28)
+#define WA_MSG_BOOST_SET_AMBIENCE	(WM_APP + 29)
 
 // Callback Messages
 #define WA_MSG_END_OF_STREAM		(WM_APP + 30)
