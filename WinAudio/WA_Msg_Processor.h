@@ -28,6 +28,7 @@ int32_t WA_Msg_Biquad_Set_Frequency(PbThreadData* pEngine, uint32_t uFilterIndex
 int32_t WA_Msg_Biquad_Set_Gain(PbThreadData* pEngine, uint32_t uFilterIndex, float fGain);
 int32_t WA_Msg_Biquad_Set_Q(PbThreadData* pEngine, uint32_t uFilterIndex, float fQ);
 int32_t WA_Msg_Biquad_Update_Coeff(PbThreadData* pEngine, uint32_t uFilterIndex);
+int32_t WA_Msg_Biquad_Set_Enable(PbThreadData* pEngine, bool bEnableFilter);
 
 int32_t WA_Msg_Audio_Boost_Init(PbThreadData* pEngine, float fMaxPeakLevel);
 int32_t WA_Msg_Audio_Boost_Close(PbThreadData* pEngine);

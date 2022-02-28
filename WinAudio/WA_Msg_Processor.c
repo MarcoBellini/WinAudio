@@ -572,6 +572,19 @@ int32_t WA_Msg_Biquad_Update_Coeff(PbThreadData* pEngine, uint32_t uFilterIndex)
 	return WINAUDIO_OK;
 }
 
+int32_t WA_Msg_Biquad_Set_Enable(PbThreadData* pEngine, bool bEnableFilter)
+{
+	if (pEngine->nBiquadCount == 0)
+		return WINAUDIO_BIQUAD_PARAM_ERROR;
+
+	if (!pEngine->BiquadArray)
+		return WINAUDIO_BADPTR;
+
+	pEngine->bBiquadEnabled = bEnableFilter;
+
+	return WINAUDIO_OK;
+}
+
 int32_t WA_Msg_Audio_Boost_Init(PbThreadData* pEngine, float fMaxPeakLevel)
 { 
 	if ((fMaxPeakLevel < 0.0f) || (fMaxPeakLevel > 1.0f))

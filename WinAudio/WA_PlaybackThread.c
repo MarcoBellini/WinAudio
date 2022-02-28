@@ -229,6 +229,10 @@ static void WA_Process_Messages(PbThreadData* pEngine)
 		case WA_MSG_BOOST_SET_AMBIENCE:
 			(*pErrorCode) = WA_Msg_Audio_Boost_Set_Ambience(pEngine, (bool)msg.wParam);
 			break;
+		case WA_MSG_BIQUAD_SET_ENABLE:
+			(*pErrorCode) = WA_Msg_Biquad_Set_Enable(pEngine, (bool)msg.wParam);
+			break;
+
 		}
 
 	}

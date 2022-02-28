@@ -16,13 +16,14 @@
 static void WA_DSP_ApplyDSP_Mono(PbThreadData* pEngine, float* pBuffer, uint32_t nBufferCount)
 {
 	// Apply Biquad
-	if (pEngine->nBiquadCount > 0)
+	if ((pEngine->bBiquadEnabled) && (pEngine->nBiquadCount > 0))
 	{
 		for (uint32_t i = 0; i < pEngine->nBiquadCount; i++)
 		{
 			WA_Biquad_Process_Mono(&pEngine->BiquadArray[i], pBuffer, nBufferCount);
-		}
+		}	
 	}
+
 
 	// Apply Boost
 	if (pEngine->bAudioBoostEnabled)
@@ -35,7 +36,7 @@ static void WA_DSP_ApplyDSP_Mono(PbThreadData* pEngine, float* pBuffer, uint32_t
 static void WA_DSP_ApplyDSP_Stereo(PbThreadData* pEngine, float* pLeftBuffer, float* pRightBuffer, uint32_t nBufferCount)
 {
 	// Apply Biquad
-	if (pEngine->nBiquadCount > 0)
+	if ((pEngine->bBiquadEnabled) && (pEngine->nBiquadCount > 0))	
 	{
 		for (uint32_t i = 0; i < pEngine->nBiquadCount; i++)
 		{

@@ -137,36 +137,37 @@ WINAUDIOAPI int32_t WinAudio_Get_Channels(WinAudio_Handle* pHandle, uint16_t* pC
 WINAUDIOAPI int32_t WinAudio_Get_BitsPerSample(WinAudio_Handle* pHandle, uint16_t* pBps);
 
 /// <summary>
-/// 
+/// Get Current Stream Position is Milliseconds
 /// </summary>
-/// <param name="pHandle"></param>
-/// <param name="puPosition"></param>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="puPosition">Pointer to an Unsigned Long</param>
 /// <returns></returns>
 WINAUDIOAPI int32_t WinAudio_Get_Position(WinAudio_Handle* pHandle, uint64_t* puPosition);
 
 /// <summary>
-/// 
+/// Set Current Stream Position in Milliseconds
 /// </summary>
-/// <param name="pHandle"></param>
-/// <param name="uPosition"></param>
-/// <returns></returns>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="uPosition">Pointer to an Unsigned Long</param>
+/// <returns>Return WINAUDIO_OK on success, otherwise error code</returns>
 WINAUDIOAPI int32_t WinAudio_Set_Position(WinAudio_Handle* pHandle, uint64_t uPosition);
 
 /// <summary>
-/// 
+/// Get Current Stream Duration is Milliseconds
 /// </summary>
-/// <param name="pHandle"></param>
-/// <param name="puDuration"></param>
-/// <returns></returns>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="puDuration">Pointer to an Unsigned Long</param>
+/// <returns>Return WINAUDIO_OK on success, otherwise error code</returns>
 WINAUDIOAPI int32_t WinAudio_Get_Duration(WinAudio_Handle* pHandle, uint64_t* puDuration);
 
 /// <summary>
-/// 
+/// Get Playing Buffer (Used for Visualizations and combined with FFT)
+/// The Buffer contains the values of current samples at the speakers
 /// </summary>
-/// <param name="pHandle"></param>
-/// <param name="pBuffer"></param>
-/// <param name="nLen"></param>
-/// <returns></returns>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="pBuffer">Pointer to a valid Byte Buffer</param>
+/// <param name="nLen">Length of Buffer to fill</param>
+/// <returns>Return WINAUDIO_OK on success, otherwise error code</returns>
 WINAUDIOAPI int32_t WinAudio_Get_Buffer(WinAudio_Handle* pHandle, int8_t* pBuffer, uint32_t nLen);
 
 /// <summary>
@@ -178,7 +179,7 @@ WINAUDIOAPI int32_t WinAudio_Get_Buffer(WinAudio_Handle* pHandle, int8_t* pBuffe
 WINAUDIOAPI int32_t WinAudio_Get_Volume(WinAudio_Handle* pHandle, uint8_t* pValue);
 
 /// <summary>
-/// Set Device Volume (Only work on playing steams)
+/// Set Device Volume (Only work on playing streams)
 /// </summary>
 /// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
 /// <param name="uValue">An unsigned byte value</param>
@@ -265,6 +266,14 @@ WINAUDIOAPI int32_t WinAudio_Biquad_Set_Q(WinAudio_Handle* pHandle, uint32_t uFi
 /// <param name="uFilterIndex">Index of element in the array created by WinAudio_Biquad_Init function (0-based)</param>
 /// <returns>WINAUDIO_OK on success, otherwise error code</returns>
 WINAUDIOAPI int32_t WinAudio_Biquad_Update_Coeff(WinAudio_Handle* pHandle, uint32_t uFilterIndex);
+
+/// <summary>
+/// Enable or Disable Biquads Processing (This filter is disabled by Default)
+/// </summary>
+/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
+/// <param name="bEnableFilter">1 = Enabled 0 = Disabled</param>
+/// <returns>WINAUDIO_OK on success, otherwise error code</returns>
+WINAUDIOAPI int32_t WinAudio_Biquad_Set_Enable(WinAudio_Handle* pHandle, int bEnableFilter);
 
 /// <summary>
 /// Init Audio Boost filter(It works on Peak level. 1.0f = max value)

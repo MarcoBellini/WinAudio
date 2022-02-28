@@ -522,6 +522,19 @@ int32_t WinAudio_Biquad_Update_Coeff(WinAudio_Handle* pHandle, uint32_t uFilterI
 
 }
 
+int32_t WinAudio_Biquad_Set_Enable(WinAudio_Handle* pHandle, int bEnableFilter)
+{
+	 int32_t nErrorCode = WINAUDIO_REQUESTFAIL;
+
+	 if (!pHandle)
+		 return WINAUDIO_BADPTR;
+
+	 if (!WinAudio_Post(pHandle, WA_MSG_BIQUAD_SET_ENABLE, (WPARAM)bEnableFilter, (LPARAM)&nErrorCode))
+		 return WINAUDIO_REQUESTFAIL;
+
+	 return nErrorCode;
+}
+
 int32_t WinAudio_AudioBoost_Init(WinAudio_Handle* pHandle, float fMaxPeakLevel)
 {
 	int32_t nErrorCode = WINAUDIO_REQUESTFAIL;

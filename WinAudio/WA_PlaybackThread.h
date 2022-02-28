@@ -43,6 +43,7 @@ typedef struct TagPbThreadData
 	// Store DSP Data
 	WA_Biquad* BiquadArray;
 	uint32_t nBiquadCount;
+	bool bBiquadEnabled;
 
 	WA_Boost* AudioBoost;
 	bool bAudioBoostEnabled;
