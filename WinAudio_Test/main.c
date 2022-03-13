@@ -66,7 +66,6 @@ int main()
 			{
 				bBoostEnabled = true;
 				WinAudio_AudioBoost_Set_Enable(pHandle, 1);
-				WinAudio_AudioBoost_Set_Ambience(pHandle, 1);
 			}
 #endif
 

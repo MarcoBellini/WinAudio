@@ -33,7 +33,7 @@ int32_t WA_Msg_Biquad_Set_Enable(PbThreadData* pEngine, bool bEnableFilter);
 int32_t WA_Msg_Audio_Boost_Init(PbThreadData* pEngine, float fMaxPeakLevel);
 int32_t WA_Msg_Audio_Boost_Close(PbThreadData* pEngine);
 int32_t WA_Msg_Audio_Boost_Set_Enable(PbThreadData* pEngine, bool bEnableFilter);
-int32_t WA_Msg_Audio_Boost_Set_Ambience(PbThreadData* pEngine, bool bEnableFilter);
+
 
 void WA_Msg_Set_Output(PbThreadData* pEngine, int32_t nOutput);
 

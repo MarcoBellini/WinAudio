@@ -10,14 +10,33 @@ typedef  wchar_t* WINAUDIO_STRPTR;
 typedef  wchar_t WINAUDIO_STR;
 #define WINAUDIO_STRCMP wcscmp
 #define WINAUDIO_STRCPY wcscpy_s
+#define WINAUDIO_STRCAT wcscat_s
+#define WINAUDIO_STRRCHR wcsrchr
+#define WINAUDIO_STRLEN wcslen
+
+// Debug Macros
+#define WINAUDIO_TRACE0(msg) _RPTW0(_CRT_WARN, TEXT(msg))
+#define WINAUDIO_TRACE1(msg, arg1) _RPTW1(_CRT_WARN, TEXT(msg), arg1)
+#define WINAUDIO_TRACE2(msg, arg1, arg2) _RPTW2(_CRT_WARN, TEXT(msg), arg1, arg2)
+#define WINAUDIO_TRACE3(msg, arg1, arg2, arg3) _RPTW3(_CRT_WARN, TEXT(msg), arg1, arg2, arg3)
 #else
 typedef  char* WINAUDIO_STRPTR;
 typedef  char WINAUDIO_STR;
 #define WINAUDIO_STRCMP strcmp
 #define WINAUDIO_STRCMP strcpy_s
+#define WINAUDIO_STRCAT strcat_s
+#define WINAUDIO_STRRCHR strrchr
+#define WINAUDIO_STRLEN strlen
 
+// Debug Macros
+#define WINAUDIO_TRACE0(msg) _RPT0(_CRT_WARN, msg)
+#define WINAUDIO_TRACE1(msg, arg1) _RPT1(_CRT_WARN, msg, arg1)
+#define WINAUDIO_TRACE2(msg, arg1, arg2) _RPT2(_CRT_WARN, msg, arg1, arg2)
+#define WINAUDIO_TRACE3(msg, arg1, arg2, arg3) _RPT3(_CRT_WARN, msg, arg1, arg2, arg3)
 #endif
 #endif
+
+
 
 
 // Event Identifications
@@ -44,8 +63,10 @@ typedef  char WINAUDIO_STR;
 // Inputs Specs
 #define WA_INPUT_WAV				0
 #define WA_INPUT_MFOUNDATION		1
-#define WA_INPUT_MAX				(WA_INPUT_MFOUNDATION + 1)
+#define WA_INPUT_PLUGINS			2
+#define WA_INPUT_MAX				(WA_INPUT_PLUGINS + 1)
 #define WA_INPUT_INVALID			-1
+#define WA_INPUT_MAX_PLUGINS		10
 
 
 // Playback Thread Messages
@@ -74,11 +95,11 @@ typedef  char WINAUDIO_STR;
 #define WA_MSG_BIQUAD_SET_GAIN		(WM_APP + 23)
 #define WA_MSG_BIQUAD_SET_Q			(WM_APP + 24)
 #define WA_MSG_BIQUAD_UPDATE_COEFF	(WM_APP + 25)
-#define WA_MSG_BOOST_INIT			(WM_APP + 26)
-#define WA_MSG_BOOST_CLOSE			(WM_APP + 27)
-#define WA_MSG_BOOST_SET_ENABLE		(WM_APP + 28)
-#define WA_MSG_BOOST_SET_AMBIENCE	(WM_APP + 29)
-#define WA_MSG_BIQUAD_SET_ENABLE	(WM_APP + 31) // Skip Number 30. It is used on End Of Stream Message.
+#define WA_MSG_BIQUAD_SET_ENABLE	(WM_APP + 26) 
+#define WA_MSG_BOOST_INIT			(WM_APP + 27)
+#define WA_MSG_BOOST_CLOSE			(WM_APP + 28)
+#define WA_MSG_BOOST_SET_ENABLE		(WM_APP + 29)
+
 
 // Callback Messages
 #define WA_MSG_END_OF_STREAM		(WM_APP + 30)

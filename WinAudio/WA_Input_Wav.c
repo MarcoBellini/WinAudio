@@ -1,13 +1,10 @@
 #include "pch.h"
-#include "WA_Input.h"
 #include "WA_Macros.h"
-
-
-
+#include "WA_Input.h"
 
 
 // Functions declarations (private functions)
-bool StreamWav_OpenFile(WA_Input* pHandle, const wchar_t* pFilePath);
+bool StreamWav_OpenFile(WA_Input* pHandle, const WINAUDIO_STRPTR pFilePath);
 bool StreamWav_CloseFile(WA_Input* pHandle);
 bool StreamWav_Seek(WA_Input* pHandle, uint64_t uBytesNewPosition, int32_t seekOrigin);
 bool StreamWav_Position(WA_Input* pHandle, uint64_t* uBytesPosition);
@@ -59,18 +56,18 @@ bool StreamWav_Initialize(WA_Input* pStreamInput)
 	ZeroMemory(&pStreamInput->ExtensionArray, sizeof(pStreamInput->ExtensionArray));
 
 	// Add extension
-	wcscpy_s(pStreamInput->ExtensionArray[0], 6, L".wav");
+	WINAUDIO_STRCPY(pStreamInput->ExtensionArray[0], 6, TEXT(".wav"));
 	pStreamInput->uExtensionsInArray = 1;
 
 	// Assign Function Pointers
-	pStreamInput->input_OpenFile = &StreamWav_OpenFile;
-	pStreamInput->input_CloseFile = &StreamWav_CloseFile;
-	pStreamInput->input_Seek = &StreamWav_Seek;
-	pStreamInput->input_Position = &StreamWav_Position;
-	pStreamInput->input_Duration = &StreamWav_Duration;
-	pStreamInput->input_Read = &StreamWav_Read;
-	pStreamInput->input_GetWaveFormat = &StreamWav_GetWaveFormat;
-	pStreamInput->input_IsStreamSeekable = &StreamWav_IsStreamSeekable;
+	pStreamInput->input_OpenFile = StreamWav_OpenFile;
+	pStreamInput->input_CloseFile = StreamWav_CloseFile;
+	pStreamInput->input_Seek = StreamWav_Seek;
+	pStreamInput->input_Position = StreamWav_Position;
+	pStreamInput->input_Duration = StreamWav_Duration;
+	pStreamInput->input_Read = StreamWav_Read;
+	pStreamInput->input_GetWaveFormat = StreamWav_GetWaveFormat;
+	pStreamInput->input_IsStreamSeekable = StreamWav_IsStreamSeekable;
 
 	// Alloc Module Instance
 	pStreamInput->pModulePrivateData = malloc(sizeof(StreamWaveInstance));
@@ -109,7 +106,7 @@ bool StreamWav_Deinitialize(WA_Input* pStreamInput)
 	return true;
 }
 
-bool StreamWav_OpenFile(WA_Input* pHandle, const wchar_t* pFilePath)
+bool StreamWav_OpenFile(WA_Input* pHandle, const WINAUDIO_STRPTR pFilePath)
 {
 	StreamWaveInstance* pWavInstance = (StreamWaveInstance*)pHandle->pModulePrivateData;
 	WaveHeader* pWaveHeader;

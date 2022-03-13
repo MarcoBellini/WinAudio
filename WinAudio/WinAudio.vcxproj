@@ -96,7 +96,6 @@
     <ClInclude Include="WA_Output.h" />
     <ClInclude Include="WA_Output_Writer.h" />
     <ClInclude Include="WA_PlaybackThread.h" />
-    <ClInclude Include="WA_Reverb.h" />
     <ClInclude Include="WinAudio.h" />
     <ClInclude Include="WA_PCM_Utility.h" />
   </ItemGroup>
@@ -108,12 +107,12 @@
     <ClCompile Include="WA_DSP_Processor.c" />
     <ClCompile Include="WA_FFT.c" />
     <ClCompile Include="WA_Input_MFnd.c" />
+    <ClCompile Include="WA_Input_Plugins.c" />
     <ClCompile Include="WA_Input_Wav.c" />
     <ClCompile Include="WA_Msg_Processor.c" />
     <ClCompile Include="WA_Output_Wasapi.c" />
     <ClCompile Include="WA_Output_Writer.c" />
     <ClCompile Include="WA_PlaybackThread.c" />
-    <ClCompile Include="WA_Reverb.c" />
     <ClCompile Include="WinAudio.c" />
     <ClCompile Include="WA_PCM_Utility.c" />
   </ItemGroup>

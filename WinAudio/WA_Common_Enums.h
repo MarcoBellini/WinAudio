@@ -69,6 +69,6 @@ enum BIQUAD_FILTER
 	WINAUDIO_PEAK			= 4,
 	WINAUDIO_LOWSHELF		= 5,
 	WINAUDIO_HIGHSHELF		= 6,
-} ;
+};
 
 #endif
