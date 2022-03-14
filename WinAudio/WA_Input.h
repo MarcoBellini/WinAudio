@@ -4,7 +4,8 @@
 /* Max number of extensions that can be stored in
    the Extension array of _IStreamInput stuct
 */
-#define INPUT_MAX_EXTENSIONS 10
+#define INPUT_MAX_EXTENSIONS		20
+#define INPUT_MAX_EXTENSION_LEN		6
 
 
 /* Forward Reference*/
@@ -13,7 +14,7 @@ typedef struct tagWA_Input* INPUT_HANDLE;
 
 
 /* Definition of function pointers */
-typedef bool (*pInput_OpenFile)(INPUT_HANDLE pHandle, const wchar_t* pFilePath);
+typedef bool (*pInput_OpenFile)(INPUT_HANDLE pHandle, const WINAUDIO_STRPTR pFilePath);
 typedef bool (*pInput_CloseFile)(INPUT_HANDLE pHandle);
 typedef bool (*pInput_Seek)(INPUT_HANDLE pHandle, uint64_t uBytesNewPosition, int32_t seekOrigin);
 typedef bool (*pInput_Position)(INPUT_HANDLE pHandle, uint64_t* uBytesPosition);
@@ -36,17 +37,17 @@ typedef struct tagWA_Input
 	pInput_GetWaveFormat input_GetWaveFormat;
 	pInput_IsStreamSeekable input_IsStreamSeekable;
 
-	/* Store Module Extensions (MAX 10 per module) */
-	wchar_t ExtensionArray[INPUT_MAX_EXTENSIONS][6];
+	/* Store Module Extensions (MAX 20 per module) */
+	WINAUDIO_STR ExtensionArray[INPUT_MAX_EXTENSIONS][6];
 	uint8_t uExtensionsInArray;
 
 	/* Allow to store private module Data*/
 	void* pModulePrivateData;
 
-
 } WA_Input;
 
 
+// Simple Wave file Reader
 bool StreamWav_Initialize(WA_Input* pStreamInput);
 bool StreamWav_Deinitialize(WA_Input* pStreamInput);
 
@@ -57,5 +58,11 @@ bool StreamWav_Deinitialize(WA_Input* pStreamInput);
 bool MediaFoundation_Initialize(WA_Input* pStreamInput);
 bool MediaFoundation_Deinitialize(WA_Input* pStreamInput);
 
+// Input Plugins
+bool WA_Input_Plugins_Initialize(WA_Input* pStreamInput);
+bool WA_Input_Plugins_Deinitialize(WA_Input* pStreamInput);
+
+typedef void (*WA_Input_Initialize_Module)(WA_Input* pInput);
+typedef void (*WA_Input_Deinitialize_Module)(WA_Input* pInput);
 
 #endif

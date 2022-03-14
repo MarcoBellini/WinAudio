@@ -620,21 +620,10 @@ int32_t WA_Msg_Audio_Boost_Set_Enable(PbThreadData* pEngine, bool bEnableFilter)
 
 }
 
-int32_t WA_Msg_Audio_Boost_Set_Ambience(PbThreadData* pEngine, bool bEnableFilter)
-{
-	if (!pEngine->AudioBoost)
-		return WINAUDIO_BADPTR;
-
-	WA_Audio_Boost_Set_Ambience_Enable(pEngine->AudioBoost, bEnableFilter);
-
-	return WINAUDIO_OK;
-
-}
-
 
 void WA_Msg_Set_Output(PbThreadData* pEngine, int32_t nOutput)
 {
-	_RPTF1(_CRT_WARN, "Set Output to: %d \n", nOutput);
+	WINAUDIO_TRACE1("Set Output to: %d \n", nOutput);
 	pEngine->uActiveOutput = nOutput;
 	pEngine->OutputArray[pEngine->uActiveOutput].hOutputWriteEvent = pEngine->hOutputEvent;
 }

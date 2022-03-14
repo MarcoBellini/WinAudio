@@ -62,8 +62,7 @@ DWORD WINAPI PlayBack_Thread_Proc(_In_ LPVOID lpParameter)
 		if (dwEventsState[WA_EVENT_OUTPUT] == WAIT_OBJECT_0)
 		{
 			// Write Output
-			WA_Process_Write_Output(&PbEngineData);
-			//_RPTW0(_CRT_WARN, L"Write Output Event\n");
+			WA_Process_Write_Output(&PbEngineData);	
 		}
 
 		if (dwEventsState[WA_EVENT_MESSAGE] == WAIT_OBJECT_0)
@@ -72,15 +71,13 @@ DWORD WINAPI PlayBack_Thread_Proc(_In_ LPVOID lpParameter)
 			WA_Process_Messages(&PbEngineData);
 
 			// Notify To Main Thread We Handled The Message
-			SetEvent(hEvents[WA_EVENT_REPLY]);
-			//_RPTW0(_CRT_WARN, L"Message Event \n");
+			SetEvent(hEvents[WA_EVENT_REPLY]);		
 		}
 
 		if (dwEventsState[WA_EVENT_DELETE] == WAIT_OBJECT_0)
 		{
 			// Exit Thread
 			bContinueLoop = false;
-			//_RPTW0(_CRT_WARN, L"Delete Event \n");
 		}
 
 	} while (bContinueLoop);
@@ -213,28 +210,22 @@ static void WA_Process_Messages(PbThreadData* pEngine)
 			(*pErrorCode) = WA_Msg_Biquad_Update_Coeff(pEngine, uIndex);
 			break;
 		}
+		case WA_MSG_BIQUAD_SET_ENABLE:
+			(*pErrorCode) = WA_Msg_Biquad_Set_Enable(pEngine, (bool)msg.wParam);
+			break;
 		case WA_MSG_BOOST_INIT:
 		{
 			float* fValue = (float*)msg.wParam;
 			(*pErrorCode) = WA_Msg_Audio_Boost_Init(pEngine, (*fValue));
 			break;
 		}
-
 		case WA_MSG_BOOST_CLOSE:
 			(*pErrorCode) = WA_Msg_Audio_Boost_Close(pEngine);
 			break;
 		case WA_MSG_BOOST_SET_ENABLE:
 			(*pErrorCode) = WA_Msg_Audio_Boost_Set_Enable(pEngine, (bool)msg.wParam);
 			break;
-		case WA_MSG_BOOST_SET_AMBIENCE:
-			(*pErrorCode) = WA_Msg_Audio_Boost_Set_Ambience(pEngine, (bool)msg.wParam);
-			break;
-		case WA_MSG_BIQUAD_SET_ENABLE:
-			(*pErrorCode) = WA_Msg_Biquad_Set_Enable(pEngine, (bool)msg.wParam);
-			break;
-
 		}
-
 	}
 }
 
@@ -270,6 +261,9 @@ static bool WA_Process_InitInOut(PbThreadData* pEngine)
 	if(!MediaFoundation_Initialize(&pEngine->InputArray[WA_INPUT_MFOUNDATION]))
 		return false;
 
+	if (!WA_Input_Plugins_Initialize(&pEngine->InputArray[WA_INPUT_PLUGINS]))
+		return false;
+
 	if (!CircleBuffer_Initialize(&pEngine->Circle))
 		return false;
 
@@ -281,5 +275,6 @@ static void WA_Process_DeInitInOut(PbThreadData* pEngine)
 {
 	CircleBuffer_Uninitialize(&pEngine->Circle);
 	MediaFoundation_Deinitialize(&pEngine->InputArray[WA_INPUT_MFOUNDATION]);
+	WA_Input_Plugins_Deinitialize(&pEngine->InputArray[WA_INPUT_PLUGINS]);
 	StreamWav_Deinitialize(&pEngine->InputArray[WA_INPUT_WAV]);	
 }

@@ -2,9 +2,6 @@
 #include "pch.h"
 #include "WA_Audio_Boost.h"
 
-#define VERBLIB_IMPLEMENTATION
-#include "WA_Reverb.h"
-
 #include <math.h>
 
 #define WA_SILENCE_VALUE					0.000079433f // -62DB
@@ -36,12 +33,6 @@ struct tagWA_Boost
 
 	float fMuliplierFactor;
 	float fTargetMuliplierFactor;
-
-	// Ambience
-	verblib Reverb;
-	bool bAmbienceEnabled;
-	bool bAmbienceSupported;
-
 };
 
 static inline uint32_t WA_Audio_Boost_MsToBytes(WA_Boost* pHandle, uint32_t uInMs)
@@ -309,7 +300,6 @@ WA_Boost* WA_Audio_Boost_Init(float fMaxPeak)
 	pHandle->fTargetMuliplierFactor = 1.0f;
 	pHandle->uElapsedAttackBytes = 0;
 	pHandle->uElapsedReleaseBytes = 0;
-	pHandle->bAmbienceEnabled = false;
 
 	return pHandle;
 }
@@ -343,30 +333,11 @@ void WA_Audio_Boost_Update(WA_Boost* pHandle, uint32_t uAvgBytesPerSec, uint32_t
 	pHandle->uAttackBytes = WA_Audio_Boost_MsToBytes(pHandle, pHandle->fAttackTimeMs);
 	pHandle->uReleaseBytes = WA_Audio_Boost_MsToBytes(pHandle, pHandle->fReleaseTimeMs);
 
-	if (pHandle->bAmbienceEnabled)
-	{
-		// Update Reverb
-		pHandle->bAmbienceSupported = verblib_initialize(&pHandle->Reverb, (unsigned long)uSamplerate, (unsigned int)uChannels);
-
-		if (pHandle->bAmbienceSupported)
-		{
-			// TODO: Create Editable Parameters
-			verblib_set_room_size(&pHandle->Reverb, 0.50f);
-			verblib_set_damping(&pHandle->Reverb, 0.30f);
-			verblib_set_wet(&pHandle->Reverb, 0.30f);
-			verblib_set_dry(&pHandle->Reverb, 0.95f);
-			verblib_set_width(&pHandle->Reverb, 0.50f);
-		}
-	}
-
 }
 
 
 void WA_Audio_Boost_Process_Stereo(WA_Boost* pHandle, float* pLeftBuffer, float* pRightBuffer, uint32_t nBufferCount)
 {
-	// Apply Reverb and after this Apply Boost
-	if ((pHandle->bAmbienceEnabled) && (pHandle->bAmbienceSupported))
-		verblib_process_stereo(&pHandle->Reverb, pLeftBuffer, pRightBuffer, (unsigned long)nBufferCount);
 
 	// Find The Peak of Current Sample
 	WA_Audio_Boost_Find_Peak_Stereo(pHandle, pLeftBuffer, pRightBuffer, nBufferCount);
@@ -393,9 +364,6 @@ void WA_Audio_Boost_Process_Stereo(WA_Boost* pHandle, float* pLeftBuffer, float*
 
 void WA_Audio_Boost_Process_Mono(WA_Boost* pHandle, float* pMonoBuffer, uint32_t nBufferCount)
 {
-	// Apply Reverb and after this Apply Boost
-	if ((pHandle->bAmbienceEnabled) && (pHandle->bAmbienceSupported))
-		verblib_process_mono(&pHandle->Reverb, pMonoBuffer, (unsigned long)nBufferCount);
 
 	// Find The Peak of Current Sample
 	WA_Audio_Boost_Find_Peak_Mono(pHandle, pMonoBuffer, nBufferCount);
@@ -418,10 +386,6 @@ void WA_Audio_Boost_Process_Mono(WA_Boost* pHandle, float* pMonoBuffer, uint32_t
 
 }
 
-void WA_Audio_Boost_Set_Ambience_Enable(WA_Boost* pHandle, bool bAmbienceIsEnabled)
-{
-	pHandle->bAmbienceEnabled = bAmbienceIsEnabled;
-}
 
 
 

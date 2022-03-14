@@ -10,6 +10,9 @@
 #define WINAUDIOAPI __declspec(dllimport)
 #endif
 
+#define WINAUDIO_VERSION				0x001	
+#define WINAUDIO_VERSION_TEXT			TEXT("0.1")
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -299,14 +302,6 @@ WINAUDIOAPI int32_t WinAudio_AudioBoost_Close(WinAudio_Handle* pHandle);
 /// <returns>WINAUDIO_OK on success, otherwise error code</returns>
 WINAUDIOAPI int32_t WinAudio_AudioBoost_Set_Enable(WinAudio_Handle* pHandle, int bEnableFilter);
 
-
-/// <summary>
-/// Enable or Disable Ambience Effect in Audio Boost Filter
-/// </summary>
-/// <param name="pHandle">Valid handle orbitained from WinAudio_New function</param>
-/// <param name="bEnableFilter">1 = Enable 0= Disable</param>
-/// <returns>WINAUDIO_OK on success, otherwise error code</returns>
-WINAUDIOAPI int32_t WinAudio_AudioBoost_Set_Ambience(WinAudio_Handle* pHandle, int bEnableFilter); // TODO: Create Customizable Ambience
 
 
 

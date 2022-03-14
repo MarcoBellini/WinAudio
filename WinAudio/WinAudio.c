@@ -110,7 +110,7 @@ WinAudio_Handle* WinAudio_New(int32_t nOutput, int32_t* pnErrorCode)
 	pNewInstance->hPlaybackHandle = CreateThread(NULL, 0, PlayBack_Thread_Proc, pNewInstance->hEvents, 0, &pNewInstance->dwThreadId);
 	
 	// Wait For Thread Response
-	dwResult = WaitForSingleObject(pNewInstance->hEvents[WA_EVENT_REPLY], 4000);
+	dwResult = WaitForSingleObject(pNewInstance->hEvents[WA_EVENT_REPLY], INFINITE);
 
 	if (dwResult != WAIT_OBJECT_0)
 	{
@@ -570,19 +570,6 @@ int32_t WinAudio_AudioBoost_Set_Enable(WinAudio_Handle* pHandle, int bEnableFilt
 		return WINAUDIO_BADPTR;
 
 	if (!WinAudio_Post(pHandle, WA_MSG_BOOST_SET_ENABLE, (WPARAM)bEnableFilter, (LPARAM)&nErrorCode))
-		return WINAUDIO_REQUESTFAIL;
-
-	return nErrorCode;
-}
-
-int32_t WinAudio_AudioBoost_Set_Ambience(WinAudio_Handle* pHandle, int bEnableFilter)
-{
-	int32_t nErrorCode = WINAUDIO_REQUESTFAIL;
-
-	if (!pHandle)
-		return WINAUDIO_BADPTR;
-
-	if (!WinAudio_Post(pHandle, WA_MSG_BOOST_SET_AMBIENCE, (WPARAM)bEnableFilter, (LPARAM)&nErrorCode))
 		return WINAUDIO_REQUESTFAIL;
 
 	return nErrorCode;

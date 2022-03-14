@@ -1,6 +1,7 @@
 #include "pch.h"
-#include "WA_Input.h"
 #include "WA_Macros.h"
+#include "WA_Input.h"
+
 
 
 #define COBJMACROS
@@ -15,7 +16,7 @@
 #pragma comment(lib , "mfreadwrite.lib")
 #pragma comment(lib , "mfuuid.lib")
 
-bool MediaFoundation_OpenFile(WA_Input* pHandle, const wchar_t* pFilePath);
+bool MediaFoundation_OpenFile(WA_Input* pHandle, const WINAUDIO_STRPTR pFilePath);
 bool MediaFoundation_CloseFile(WA_Input* pHandle);
 bool MediaFoundation_Seek(WA_Input* pHandle, uint64_t uBytesNewPosition, int32_t seekOrigin);
 bool MediaFoundation_Position(WA_Input* pHandle, uint64_t* uBytesPosition);
@@ -54,19 +55,21 @@ bool MediaFoundation_Initialize(WA_Input* pStreamInput)
 	ZeroMemory(&pStreamInput->ExtensionArray, sizeof(pStreamInput->ExtensionArray));
 
 	// Add extension
-	wcscpy_s(pStreamInput->ExtensionArray[0], 6, L".mp3");
-	wcscpy_s(pStreamInput->ExtensionArray[1], 6, L".wma");
-	pStreamInput->uExtensionsInArray = 2;
+	WINAUDIO_STRCPY(pStreamInput->ExtensionArray[0], 6, TEXT(".mp3"));
+	WINAUDIO_STRCPY(pStreamInput->ExtensionArray[1], 6, TEXT(".wma"));
+	WINAUDIO_STRCPY(pStreamInput->ExtensionArray[2], 6, TEXT(".aac"));
+
+	pStreamInput->uExtensionsInArray = 3;
 
 	// Assign Function Pointers
-	pStreamInput->input_OpenFile = &MediaFoundation_OpenFile;
-	pStreamInput->input_CloseFile = &MediaFoundation_CloseFile;
-	pStreamInput->input_Seek = &MediaFoundation_Seek;
-	pStreamInput->input_Position = &MediaFoundation_Position;
-	pStreamInput->input_Duration = &MediaFoundation_Duration;
-	pStreamInput->input_Read = &MediaFoundation_Read;
-	pStreamInput->input_GetWaveFormat = &MediaFoundation_GetWaveFormat;
-	pStreamInput->input_IsStreamSeekable = &MediaFoundation_IsStreamSeekable;
+	pStreamInput->input_OpenFile = MediaFoundation_OpenFile;
+	pStreamInput->input_CloseFile = MediaFoundation_CloseFile;
+	pStreamInput->input_Seek = MediaFoundation_Seek;
+	pStreamInput->input_Position = MediaFoundation_Position;
+	pStreamInput->input_Duration = MediaFoundation_Duration;
+	pStreamInput->input_Read = MediaFoundation_Read;
+	pStreamInput->input_GetWaveFormat = MediaFoundation_GetWaveFormat;
+	pStreamInput->input_IsStreamSeekable = MediaFoundation_IsStreamSeekable;
 
 	// Alloc Module Instance
 	pStreamInput->pModulePrivateData = malloc(sizeof(MediaFoundationInstance));
@@ -108,7 +111,7 @@ bool MediaFoundation_Deinitialize(WA_Input* pStreamInput)
 
 }
 
-bool MediaFoundation_OpenFile(WA_Input* pHandle, const wchar_t* pFilePath)
+bool MediaFoundation_OpenFile(WA_Input* pHandle, const WINAUDIO_STRPTR pFilePath)
 {
 	MediaFoundationInstance* MFInstance = (MediaFoundationInstance*)pHandle->pModulePrivateData;
 	IMFMediaType* pMediaType;
