@@ -121,7 +121,7 @@ static void WA_Input_Create_Extensions_Array(WA_Input* pHandle)
 	}
 }
 
-static int32_t WA_Msg_GetDecoder(WA_Input* pHandle, const WINAUDIO_STRPTR pFilePath)
+static int32_t WA_Input_GetDecoder(WA_Input* pHandle, const WINAUDIO_STRPTR pFilePath)
 {
 	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
 	WINAUDIO_STRPTR FileExtension;
@@ -190,7 +190,7 @@ bool WA_Input_Plugins_Initialize(WA_Input* pStreamInput)
 	// Copy the address to Local pointer
 	pInstance = (WA_Plugins_Instance*)pStreamInput->pModulePrivateData;
 	pInstance->uActivePlugin = WA_INPUT_INVALID;
-	pInstance->uPluginsCount = 0;
+	pInstance->uPluginsCount = 0;	
 
 	pStreamInput->uExtensionsInArray = 0;
 
@@ -241,42 +241,108 @@ bool WA_Input_Plugins_Deinitialize(WA_Input* pStreamInput)
 // Module Functions
 bool WA_Input_Plugins_OpenFile(WA_Input* pHandle, const WINAUDIO_STRPTR pFilePath)
 {
+	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
+	WA_Input* pIn;
 
+	pInstance->uActivePlugin = WA_Input_GetDecoder(pHandle, pFilePath);
+
+	if (pInstance->uActivePlugin == WA_INPUT_INVALID)
+		return false;
+
+	pIn = &pInstance->pPluginsList[pInstance->uActivePlugin].In;
+
+	return pIn->input_OpenFile(pIn, pFilePath);
 }
 
 bool WA_Input_Plugins_CloseFile(WA_Input* pHandle)
 {
+	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
+	WA_Input* pIn;	
 
+	if (pInstance->uActivePlugin == WA_INPUT_INVALID)
+		return false;
+
+	pIn = &pInstance->pPluginsList[pInstance->uActivePlugin].In;
+
+	return pIn->input_CloseFile(pIn);
 }
 
 bool WA_Input_Plugins_Seek(WA_Input* pHandle, uint64_t uBytesNewPosition, int32_t seekOrigin)
 {
+	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
+	WA_Input* pIn;
 
+	if (pInstance->uActivePlugin == WA_INPUT_INVALID)
+		return false;
+
+	pIn = &pInstance->pPluginsList[pInstance->uActivePlugin].In;
+
+	return pIn->input_Seek(pIn, uBytesNewPosition, seekOrigin);
 }
 
 bool WA_Input_Plugins_Position(WA_Input* pHandle, uint64_t* uBytesPosition)
 {
+	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
+	WA_Input* pIn;
 
+	if (pInstance->uActivePlugin == WA_INPUT_INVALID)
+		return false;
+
+	pIn = &pInstance->pPluginsList[pInstance->uActivePlugin].In;
+
+	return pIn->input_Position(pIn, uBytesPosition);
 }
 
 bool WA_Input_Plugins_Duration(WA_Input* pHandle, uint64_t* uBytesDuration)
 {
+	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
+	WA_Input* pIn;
 
+	if (pInstance->uActivePlugin == WA_INPUT_INVALID)
+		return false;
+
+	pIn = &pInstance->pPluginsList[pInstance->uActivePlugin].In;
+
+	return pIn->input_Duration(pIn, uBytesDuration);
 }
 
 bool WA_Input_Plugins_Read(WA_Input* pHandle, int8_t* pByteBuffer, uint32_t uBytesToRead, uint32_t* uByteReaded)
 {
+	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
+	WA_Input* pIn;
 
+	if (pInstance->uActivePlugin == WA_INPUT_INVALID)
+		return false;
+
+	pIn = &pInstance->pPluginsList[pInstance->uActivePlugin].In;
+
+	return pIn->input_Read(pIn, pByteBuffer, uBytesToRead, uByteReaded);
 }
 
 bool WA_Input_Plugins_GetWaveFormat(WA_Input* pHandle, uint32_t* uSamplerate, uint16_t* uChannels, uint16_t* uBitsPerSample)
 {
+	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
+	WA_Input* pIn;
 
+	if (pInstance->uActivePlugin == WA_INPUT_INVALID)
+		return false;
+
+	pIn = &pInstance->pPluginsList[pInstance->uActivePlugin].In;
+
+	return pIn->input_GetWaveFormat(pIn, uSamplerate, uChannels, uBitsPerSample);
 }
 
 bool WA_Input_Plugins_IsStreamSeekable(WA_Input* pHandle) 
 {
+	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
+	WA_Input* pIn;
 
+	if (pInstance->uActivePlugin == WA_INPUT_INVALID)
+		return false;
+
+	pIn = &pInstance->pPluginsList[pInstance->uActivePlugin].In;
+
+	return pIn->input_IsStreamSeekable(pIn);
 }
 
 
