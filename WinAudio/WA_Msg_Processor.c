@@ -131,7 +131,9 @@ int32_t WA_Msg_Play(PbThreadData* pEngine)
 	}
 
 	// Write Data to Output before play
-	WA_Output_FeedWithData(pEngine);
+	if (!WA_Output_FeedWithData(pEngine))	
+		return WINAUDIO_CANNOTCHANGESTATUS;
+	
 
 	pEngine->nCurrentStatus = WINAUDIO_PLAY;
 	pEngine->bEndOfStream = false;

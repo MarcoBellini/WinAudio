@@ -57,7 +57,7 @@ static void WA_Input_Process_DLL(WA_Input* pHandle, const WINAUDIO_STRPTR DllNam
 	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
 	int32_t uIndex = pInstance->uPluginsCount;
 
-	
+	// Load Input Library
 	pInstance->pPluginsList[uIndex].hInput = LoadLibrary(DllName);
 
 
@@ -69,8 +69,18 @@ static void WA_Input_Process_DLL(WA_Input* pHandle, const WINAUDIO_STRPTR DllNam
 		// Check if we have valid functions pointers
 		if ((pInstance->pPluginsList[uIndex].pInit) && (pInstance->pPluginsList[uIndex].pDeinit))
 		{
-			pInstance->pPluginsList[uIndex].pInit(&pInstance->pPluginsList[uIndex].In);
-			pInstance->uPluginsCount++;
+			// Add Plugin only if it initialize correctly otherwise unload it
+			if (pInstance->pPluginsList[uIndex].pInit(&pInstance->pPluginsList[uIndex].In))
+			{
+				pInstance->uPluginsCount++;
+				WINAUDIO_TRACE1("Plugin Loaded: %s \n", DllName);
+			}
+			else
+			{
+				FreeLibrary(pInstance->pPluginsList[uIndex].hInput);
+				pInstance->pPluginsList[uIndex].hInput = NULL;
+			}
+			
 		}
 		else
 		{
@@ -83,13 +93,17 @@ static void WA_Input_Process_DLL(WA_Input* pHandle, const WINAUDIO_STRPTR DllNam
 static void WA_Input_Release_DLL(WA_Input* pHandle)
 {
 	WA_Plugins_Instance* pInstance = (WA_Plugins_Instance*)pHandle->pModulePrivateData;
+	bool bResult;
 
 	if (pInstance->uPluginsCount > 0)
 	{
 		do
 		{
 			pInstance->uPluginsCount--;
-			pInstance->pPluginsList[pInstance->uPluginsCount].pDeinit(&pInstance->pPluginsList[pInstance->uPluginsCount].In);
+			bResult = pInstance->pPluginsList[pInstance->uPluginsCount].pDeinit(&pInstance->pPluginsList[pInstance->uPluginsCount].In);
+
+			// Used for Debug only
+			_ASSERT(bResult == true);
 
 			if(pInstance->pPluginsList[pInstance->uPluginsCount].hInput)
 				FreeLibrary(pInstance->pPluginsList[pInstance->uPluginsCount].hInput);
@@ -206,8 +220,7 @@ bool WA_Input_Plugins_Initialize(WA_Input* pStreamInput)
 		{
 			do
 			{
-				WA_Input_Process_DLL(pStreamInput, FindData.cFileName);
-				WINAUDIO_TRACE1("Plugin: %s \n", FindData.cFileName);
+				WA_Input_Process_DLL(pStreamInput, FindData.cFileName);				
 
 			} while (FindNextFile(FindHandle, &FindData) != 0);
 

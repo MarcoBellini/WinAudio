@@ -344,7 +344,7 @@ static bool OutWasapi_CleanResources(WA_Output* pHandle)
 //  7) Re-initialize the _AudioClient.
 //  8) Re-register for session disconnect notifications and reset the stream switch complete event.
 // https://github.com/microsoft/Windows-classic-samples/blob/main/Samples/Win7Samples/multimedia/audio/RenderSharedEventDriven/WASAPIRenderer.cpp
-static void OutWasapi_PerformStreamSwitch(WA_Output* pHandle)
+static void OutWasapi_PerformStreamSwitch(WA_Output* pHandle) // TODO: Create a Bool version and Check for errors
 {
 	OutWasapiInstance* pWasapiInstance = (OutWasapiInstance*)pHandle->pModulePrivateData;
 	HRESULT hr;

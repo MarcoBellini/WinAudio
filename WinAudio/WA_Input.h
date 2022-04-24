@@ -2,7 +2,7 @@
 #define WA_INPUT_H
 
 /* Max number of extensions that can be stored in
-   the Extension array of _IStreamInput stuct
+   the Extension array of WA_Input stuct
 */
 #define INPUT_MAX_EXTENSIONS		20
 #define INPUT_MAX_EXTENSION_LEN		6
@@ -62,7 +62,7 @@ bool MediaFoundation_Deinitialize(WA_Input* pStreamInput);
 bool WA_Input_Plugins_Initialize(WA_Input* pStreamInput);
 bool WA_Input_Plugins_Deinitialize(WA_Input* pStreamInput);
 
-typedef void (*WA_Input_Initialize_Module)(WA_Input* pInput);
-typedef void (*WA_Input_Deinitialize_Module)(WA_Input* pInput);
+typedef bool (*WA_Input_Initialize_Module)(WA_Input* pInput);
+typedef bool (*WA_Input_Deinitialize_Module)(WA_Input* pInput);
 
 #endif

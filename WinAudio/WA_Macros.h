@@ -36,8 +36,12 @@ typedef  char WINAUDIO_STR;
 #endif
 #endif
 
-
-
+// Assembly Breakpoint
+#ifdef _DEBUG
+#define WINAUDIO_BREAKPOINT _asm { int 3 }
+#else
+#define WINAUDIO_BREAKPOINT
+#endif
 
 // Event Identifications
 #define WA_EVENT_REPLY				0

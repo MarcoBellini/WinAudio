@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="File di intestazione\SDK">
+      <UniqueIdentifier>{dbdb5cfb-338b-4d0a-a254-d41d9f5572c7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WinAudio.h">
@@ -56,6 +59,9 @@
     </ClInclude>
     <ClInclude Include="WA_DSP_Processor.h">
       <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="WA_SDK_Input.h">
+      <Filter>File di intestazione\SDK</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

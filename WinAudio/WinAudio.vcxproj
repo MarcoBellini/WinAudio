@@ -96,6 +96,7 @@
     <ClInclude Include="WA_Output.h" />
     <ClInclude Include="WA_Output_Writer.h" />
     <ClInclude Include="WA_PlaybackThread.h" />
+    <ClInclude Include="WA_SDK_Input.h" />
     <ClInclude Include="WinAudio.h" />
     <ClInclude Include="WA_PCM_Utility.h" />
   </ItemGroup>
